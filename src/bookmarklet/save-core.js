@@ -1,10 +1,13 @@
 // 「存餐點」核心：攔截「加入購物車」，等網站真的把選項視窗關掉（＝成功加入）才記下
-import { norm, groups, rows, rowState, cardName, cardPrice, rowAddOn, numOf, qsModal, activeModal, visible, KEY } from './dom.js';
+import { norm, groups, rows, rowState, cardName, cardPrice, rowAddOn, numOf, qsModal, activeModal, visible, KEY, modalItemName, modalTitle } from './dom.js';
 import { normalizePayload, normalizeSet, newId } from '../shared/codec.js';
 
 /** 讀取目前打開的選項視窗，產生一份餐點紀錄 */
 export function snapshotItem(lastItem) {
-  const title = norm((qsModal('.modal-title, h5, .modal-header') || {}).textContent);
+  // 真實站 .modal-title 是「數量編輯」；品名在 body。優先用點卡片記下的名稱。
+  const header = modalTitle();
+  const fromBody = modalItemName();
+  const title = fromBody || (header && header !== '數量編輯' ? header : '');
   const options = {};
   const optPrices = {};
   groups().forEach((g) => {

@@ -66,7 +66,7 @@ export function mountMockShop(doc, cats, mods = {}) {
     </div></div></div>
     <div class="cartbar"><span id="cartCount">購物車 0 件</span><button type="button" id="checkout">前往結帳</button></div>
     <div class="modal fade" id="itemModal" style="display:none"><div class="modal-dialog"><div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title"></h5><button type="button" class="btn-close" aria-label="Close">×</button></div>
+      <div class="modal-header"><h5 class="modal-title">數量編輯</h5><button type="button" class="btn-close" aria-label="Close">×</button></div>
       <div class="modal-body"></div>
       <div class="modal-footer">
         <textarea data-testid="comment" placeholder="備註"></textarea>
@@ -116,11 +116,15 @@ export function mountMockShop(doc, cats, mods = {}) {
   function open(it) {
     if (ann && ann.isConnected) return; // 公告沒關掉時點不到
     cur = { it, qty: 1, comment: '', sel: new Map() };
-    modal.querySelector('.modal-title').textContent = it.name;
+    // 真實電小二：header 固定「數量編輯」，品名在 body 大字（不是 .modal-title）
+    modal.querySelector('.modal-title').textContent = '數量編輯';
     qtyEl.textContent = '1';
     comment.value = '';
     errEl.textContent = '';
-    mBody.innerHTML = '';
+    mBody.innerHTML = `<div class="poke-item-head">
+      <div class="poke-item-name" data-poke-item-name style="font-size: var(--web-text-lg);font-weight:700">${esc(it.name)}</div>
+      <div class="text-muted">${it.kcal != null ? it.kcal : fakeKcal(it.name)} 大卡</div>
+    </div>`;
     it.groups.forEach((g, gi) => {
       const sel = new Map();
       cur.sel.set(g.title, sel);

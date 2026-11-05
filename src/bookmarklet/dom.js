@@ -186,12 +186,11 @@ export const cta = () => {
   return list.find(visible) || null;
 };
 
-/** 目前選項視窗標題（用來確認開到的是目標品項，而不是執行前殘留的視窗） */
+/** 視窗 header 文字（真實電小二固定是「數量編輯」，不是品名） */
 export const modalTitle = () => {
   const m = activeModal();
   if (!m) return '';
-  // 必須分開查：querySelector('a, b') 是 DOM 順序，不是選擇器順序，
-  // 否則會先命中整塊 .modal-header（含關閉鈕「×」）
+  // 必須分開查：querySelector('a, b') 是 DOM 順序，不是選擇器順序
   const t = m.querySelector('.modal-title') || m.querySelector('.modal-header h5');
   if (t) return norm(t.textContent);
   const header = m.querySelector('.modal-header');
@@ -200,6 +199,58 @@ export const modalTitle = () => {
   clone.querySelectorAll('button, .btn-close, [aria-label=Close]').forEach((b) => b.remove());
   return norm(clone.textContent);
 };
+
+const GENERIC_MODAL_TITLE = /^(數量編輯|Close|×)$/;
+const MODAL_NAME_SKIP = '.attribute-category-title, .attribute-option-title, .px-3, label, textarea, button, input, .qty, [data-testid^="attributeQuantity"], [data-testid^="quantityCounter"], [data-testid=attributeCTALayout]';
+
+/**
+ * 目前選項視窗裡的真正品名。
+ * 真實電小二：H5.modal-title＝「數量編輯」，品名在 .modal-body 圖片下方的大字。
+ */
+export function modalItemName() {
+  const m = activeModal();
+  if (!m) return '';
+  const body = m.querySelector('.modal-body');
+  if (!body) return '';
+
+  const marked = body.querySelector('[data-poke-item-name], .poke-item-name');
+  if (marked) return norm(marked.textContent);
+
+  for (const sel of ['[style*="web-text-xl"]', '[style*="web-text-lg"]', '[style*="web-text-md"]']) {
+    for (const el of body.querySelectorAll(sel)) {
+      if (el.closest(MODAL_NAME_SKIP)) continue;
+      const t = norm(el.textContent);
+      if (!t || GENERIC_MODAL_TITLE.test(t) || /大卡|kcal|^\$/.test(t) || t.length > 60) continue;
+      return t;
+    }
+  }
+
+  for (const child of body.children) {
+    if (child.querySelector && child.querySelector('.attribute-category-title')) break;
+    if (child.classList && child.classList.contains('group')) break;
+    const t = norm(child.textContent);
+    const line = t.split(/\n+/).map(norm).find((x) => x && !GENERIC_MODAL_TITLE.test(x) && !/大卡|kcal|^\$/.test(x) && x.length <= 60);
+    if (line) return line;
+  }
+  return '';
+}
+
+/**
+ * 目前視窗是否在顯示指定品項。
+ * true＝確定是、false＝確定不是、null＝比對不到（呼叫端不要直接當失敗）。
+ */
+export function modalShowsItem(itemName) {
+  const m = activeModal();
+  if (!m) return false;
+  const want = norm(itemName);
+  if (!want) return null;
+  const got = modalItemName();
+  if (got) return got === want || got.includes(want) || want.includes(got);
+  const body = m.querySelector('.modal-body') || m;
+  const text = norm(body.textContent || '');
+  if (text.includes(want)) return true;
+  return null;
+}
 
 /** 是否還有開著的選項視窗（.modal.show） */
 export const anyModalOpen = () => !!document.querySelector('.modal.show');
