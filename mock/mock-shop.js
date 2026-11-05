@@ -87,7 +87,24 @@ export function mountMockShop(doc, cats, mods = {}) {
   const errEl = modal.querySelector('.err');
   let cur = null; // { it, qty, comment, sel: Map<group, Map<option, n>> }
 
-  const close = () => { modal.style.display = 'none'; modal.className = 'modal fade'; cur = null; };
+  const backdropId = 'mockModalBackdrop';
+  const removeBackdrop = () => { const bd = doc.getElementById(backdropId); if (bd) bd.remove(); };
+  const ensureBackdrop = () => {
+    if (doc.getElementById(backdropId)) return;
+    const bd = doc.createElement('div');
+    bd.id = backdropId;
+    bd.className = 'modal-backdrop fade show';
+    bd.style.cssText = 'position:fixed;inset:0;z-index:1040;background:#000;opacity:.5';
+    // 真實 Bootstrap：點 backdrop 通常會關視窗
+    bd.addEventListener('click', close);
+    doc.body.appendChild(bd);
+  };
+  const close = () => {
+    modal.style.display = 'none';
+    modal.className = 'modal fade';
+    cur = null;
+    removeBackdrop();
+  };
   modal.querySelector('.btn-close').addEventListener('click', close);
   // 模擬 React：用 input 事件同步狀態
   comment.addEventListener('input', () => { if (cur) cur.comment = comment.value; });
@@ -145,11 +162,15 @@ export function mountMockShop(doc, cats, mods = {}) {
       mBody.appendChild(wrap);
     });
     modal.style.display = 'block';
+    modal.style.zIndex = '1055';
     modal.className = 'modal fade show';
+    ensureBackdrop();
   }
 
   body.querySelectorAll('[data-testid^="menuItems-item"]').forEach((card) => {
     card.addEventListener('click', () => {
+      // 真實電小二：.modal.show 開著時點不到後面的菜單（被 backdrop 擋住）
+      if (modal.classList.contains('show')) return;
       const it = menu[card.dataset.ci].items[card.dataset.ii];
       if (!it.soldOut) open(it);
     });

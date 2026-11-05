@@ -186,6 +186,36 @@ export const cta = () => {
   return list.find(visible) || null;
 };
 
+/** 目前選項視窗標題（用來確認開到的是目標品項，而不是執行前殘留的視窗） */
+export const modalTitle = () => {
+  const m = activeModal();
+  if (!m) return '';
+  // 必須分開查：querySelector('a, b') 是 DOM 順序，不是選擇器順序，
+  // 否則會先命中整塊 .modal-header（含關閉鈕「×」）
+  const t = m.querySelector('.modal-title') || m.querySelector('.modal-header h5');
+  if (t) return norm(t.textContent);
+  const header = m.querySelector('.modal-header');
+  if (!header) return '';
+  const clone = header.cloneNode(true);
+  clone.querySelectorAll('button, .btn-close, [aria-label=Close]').forEach((b) => b.remove());
+  return norm(clone.textContent);
+};
+
+/** 是否還有開著的選項視窗（.modal.show） */
+export const anyModalOpen = () => !!document.querySelector('.modal.show');
+
+/**
+ * 關掉目前的選項視窗：先點關閉鈕，再試 backdrop。
+ * 回傳是否有發出關閉動作（不保證動畫已結束）。
+ */
+export function closeModal() {
+  const b = document.querySelector('.modal.show .btn-close, .modal.show [aria-label=Close], .modal.show [aria-label="關閉"], .modal.show [data-testid*="close" i]');
+  if (b) { tap(b); return true; }
+  const bd = document.querySelector('.modal-backdrop.show, .modal-backdrop');
+  if (bd) { tap(bd); return true; }
+  return false;
+}
+
 export const setTextareaValue = (c, v) => {
   const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
   set.call(c, v);
