@@ -1,0 +1,21 @@
+{
+  "name": "poke-oneclick",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "波奇一鍵點餐：PWA + 電小二書籤小工具",
+  "scripts": {
+    "bookmarklets": "node scripts/build-bookmarklets.mjs",
+    "dev": "npm run bookmarklets && vite",
+    "build": "npm run bookmarklets && vite build && node scripts/postbuild.mjs",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.12",
+    "jsdom": "^25.0.1",
+    "vite": "^6.4.5",
+    "vitest": "^3.2.7"
+  }
+}
