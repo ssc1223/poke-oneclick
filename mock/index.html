@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模擬電小二點餐頁（本地測試用）</title>
+<style>
+  body{font:15px/1.5 -apple-system,"PingFang TC","Noto Sans TC",sans-serif;margin:0;padding:0 12px 90px;background:#fafafa;color:#222}
+  .dev{position:sticky;top:0;background:#333;color:#fff;padding:8px;margin:0 -12px 8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;z-index:10}
+  .dev button,.dev select{font-size:14px}
+  .card{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #ddd;border-radius:10px;padding:10px;margin:6px 0;cursor:pointer}
+  .card.disabled{opacity:.5}
+  .tag{color:#c00;font-size:12px}
+  .ann{position:fixed;inset:30% 10% auto;background:#fff;border:2px solid #333;padding:16px;z-index:20;text-align:center}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:30;overflow:auto}
+  .modal-content{background:#fff;margin:20px auto;max-width:520px;border-radius:12px;padding:12px}
+  .modal-header{display:flex;justify-content:space-between}
+  .group{border-top:1px solid #eee;padding:6px 0}
+  .attribute-category-title{font-weight:700}
+  .px-3{display:flex;gap:6px;align-items:center;padding:2px 12px}
+  .add{color:#888;font-size:12px;margin-left:auto}
+  .modal-footer textarea{width:100%}
+  [data-testid=attributeCTALayout]{width:100%;padding:12px;background:#e8590c;color:#fff;border:0;border-radius:10px;font-size:16px}
+  .err{color:#c00}
+  .cartbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #ddd;padding:10px;display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<div class="dev">
+  <b>🧪 模擬頁</b>
+  <select id="sc">
+    <option value="">菜單不變</option>
+    <option value="rename">麥茶改名為冰麥茶</option>
+    <option value="soldout">檸檬汁售完、和風柚香售完</option>
+    <option value="price">招牌奶香芥末鮭魚飯漲價</option>
+    <option value="option">配菜「黃瓜」改名「小黃瓜」</option>
+  </select>
+  <button id="bmSave">執行「存餐點」</button>
+  <button id="bmRestore">執行「一鍵點餐」</button>
+  <span id="cartView"></span>
+</div>
+<div id="shop"></div>
+<script type="module">
+  import { mountMockShop } from './mock-shop.js';
+  import cats from './menu-data.json';
+  import bm from '../src/generated/bookmarklets.json';
+  const scen = {
+    '': {},
+    rename: { rename: { 麥茶: '冰麥茶' } },
+    soldout: { soldOut: ['檸檬汁'], optionSoldOut: [['創意自選波奇', '醬汁選一', '和風柚香                【全素】']] },
+    price: { price: { 招牌奶香芥末鮭魚飯: 239 } }, // 加點鮭魚加價在紀錄中改成 +60 即可模擬
+    option: { optionRename: [['創意自選波奇', '配菜選六', '黃瓜', '小黃瓜']] },
+  };
+  const sc = document.getElementById('sc');
+  const q = new URLSearchParams(location.search).get('scenario') || '';
+  sc.value = q;
+  sc.onchange = () => { location.search = '?scenario=' + sc.value; };
+  // mountMockShop 會覆蓋 body，所以把開發列先搬走再放回
+  const dev = document.querySelector('.dev');
+  const state = mountMockShop(document, cats, scen[q] || {});
+  document.body.prepend(dev);
+  window.__mockState = state;
+  const run = (code) => (0, eval)(decodeURIComponent(code.replace(/^javascript:/, '')));
+  document.getElementById('bmSave').onclick = () => run(bm.save);
+  document.getElementById('bmRestore').onclick = () => run(bm.restore);
+  setInterval(() => { document.getElementById('cartView').textContent = '🛒 ' + state.cart.map((c) => c.item + 'x' + c.qty).join('、'); }, 500);
+</script>
+</body>
+</html>

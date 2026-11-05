@@ -1,0 +1,1602 @@
+[
+ {
+  "title": "會員專區",
+  "items": [
+   {
+    "name": "【週邊商品】小椅子手機架",
+    "price": 250,
+    "groups": []
+   }
+  ]
+ },
+ {
+  "title": "組合套餐",
+  "items": [
+   {
+    "name": "夏威夷經典鮪魚飯",
+    "price": 189,
+    "groups": [
+     {
+      "title": "加點蛋白質",
+      "min": 0,
+      "max": 8,
+      "options": [
+       {
+        "name": "酪梨泥",
+        "price": 45
+       },
+       {
+        "name": "挪威鮭魚(生)",
+        "price": 65
+       },
+       {
+        "name": "煙燻鮭魚",
+        "price": 70
+       },
+       {
+        "name": "鮪魚(生)",
+        "price": 55
+       },
+       {
+        "name": "辣鮪魚泥(生)",
+        "price": 40
+       },
+       {
+        "name": "鳳尾蝦/4隻",
+        "price": 55
+       },
+       {
+        "name": "干貝/6顆",
+        "price": 45
+       },
+       {
+        "name": "香烤雞胸肉",
+        "price": 45
+       },
+       {
+        "name": "阿根廷冰魷",
+        "price": 35
+       },
+       {
+        "name": "豆腐(非基改)",
+        "price": 20
+       },
+       {
+        "name": "雞蛋",
+        "price": 25
+       }
+      ]
+     },
+     {
+      "title": "基底量",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "基底量正常",
+        "price": 0
+       },
+       {
+        "name": "基底量少",
+        "price": 0
+       },
+       {
+        "name": "基底量多　 【限全飯】",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本蛋白質(鮪魚)",
+      "min": 2,
+      "max": 2,
+      "options": [
+       {
+        "name": "鮪魚(生)",
+        "price": 0
+       },
+       {
+        "name": "波奇特調醬【葷】",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本配菜(鮪魚)",
+      "min": 5,
+      "max": 5,
+      "options": [
+       {
+        "name": "洋蔥",
+        "price": 0
+       },
+       {
+        "name": "黃瓜(組)",
+        "price": 0
+       },
+       {
+        "name": "毛豆",
+        "price": 0
+       },
+       {
+        "name": "海藻沙拉",
+        "price": 0
+       },
+       {
+        "name": "青蔥",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本配料(鮪魚)",
+      "min": 2,
+      "max": 2,
+      "options": [
+       {
+        "name": "七味粉",
+        "price": 0
+       },
+       {
+        "name": "芝麻",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "醬料選擇",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "醬料另外放",
+        "price": 0
+       },
+       {
+        "name": "醬料直接放",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基底選一(組)",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "白米",
+        "price": 0
+       },
+       {
+        "name": "糙米",
+        "price": 0
+       },
+       {
+        "name": "萵苣",
+        "price": 10
+       },
+       {
+        "name": "綜合生菜",
+        "price": 10
+       },
+       {
+        "name": "白米                糙米",
+        "price": 0
+       },
+       {
+        "name": "白米                綜合生菜",
+        "price": 5
+       },
+       {
+        "name": "糙米                綜合生菜",
+        "price": 5
+       },
+       {
+        "name": "白米                萵苣",
+        "price": 5
+       },
+       {
+        "name": "糙米                萵苣",
+        "price": 5
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "加州辣鮪魚飯",
+    "price": 179,
+    "groups": [
+     {
+      "title": "加點蛋白質",
+      "min": 0,
+      "max": 8,
+      "options": [
+       {
+        "name": "酪梨泥",
+        "price": 45
+       },
+       {
+        "name": "挪威鮭魚(生)",
+        "price": 65
+       },
+       {
+        "name": "煙燻鮭魚",
+        "price": 70
+       },
+       {
+        "name": "鮪魚(生)",
+        "price": 55
+       },
+       {
+        "name": "辣鮪魚泥(生)",
+        "price": 40
+       },
+       {
+        "name": "鳳尾蝦/4隻",
+        "price": 55
+       },
+       {
+        "name": "干貝/6顆",
+        "price": 45
+       },
+       {
+        "name": "香烤雞胸肉",
+        "price": 45
+       },
+       {
+        "name": "阿根廷冰魷",
+        "price": 35
+       },
+       {
+        "name": "豆腐(非基改)",
+        "price": 20
+       },
+       {
+        "name": "雞蛋",
+        "price": 25
+       }
+      ]
+     },
+     {
+      "title": "基底量",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "基底量正常",
+        "price": 0
+       },
+       {
+        "name": "基底量少",
+        "price": 0
+       },
+       {
+        "name": "基底量多　 【限全飯】",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本蛋白質(辣鮪魚)",
+      "min": 2,
+      "max": 2,
+      "options": [
+       {
+        "name": "辣鮪魚",
+        "price": 0
+       },
+       {
+        "name": "美式辣醬                【五辛素】",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本配菜(辣鮪魚)",
+      "min": 5,
+      "max": 5,
+      "options": [
+       {
+        "name": "黃瓜(組)",
+        "price": 0
+       },
+       {
+        "name": "青椒",
+        "price": 0
+       },
+       {
+        "name": "海藻沙拉",
+        "price": 0
+       },
+       {
+        "name": "蟹肉沙拉",
+        "price": 0
+       },
+       {
+        "name": "青蔥",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本配料(辣鮪魚)",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "芝麻",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "醬料選擇",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "醬料另外放",
+        "price": 0
+       },
+       {
+        "name": "醬料直接放",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基底選一(組)",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "白米",
+        "price": 0
+       },
+       {
+        "name": "糙米",
+        "price": 0
+       },
+       {
+        "name": "萵苣",
+        "price": 10
+       },
+       {
+        "name": "綜合生菜",
+        "price": 10
+       },
+       {
+        "name": "白米                糙米",
+        "price": 0
+       },
+       {
+        "name": "白米                綜合生菜",
+        "price": 5
+       },
+       {
+        "name": "糙米                綜合生菜",
+        "price": 5
+       },
+       {
+        "name": "白米                萵苣",
+        "price": 5
+       },
+       {
+        "name": "糙米                萵苣",
+        "price": 5
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "招牌奶香芥末鮭魚飯",
+    "price": 229,
+    "groups": [
+     {
+      "title": "加點蛋白質",
+      "min": 0,
+      "max": 8,
+      "options": [
+       {
+        "name": "酪梨泥",
+        "price": 45
+       },
+       {
+        "name": "挪威鮭魚(生)",
+        "price": 65
+       },
+       {
+        "name": "煙燻鮭魚",
+        "price": 70
+       },
+       {
+        "name": "鮪魚(生)",
+        "price": 55
+       },
+       {
+        "name": "辣鮪魚泥(生)",
+        "price": 40
+       },
+       {
+        "name": "鳳尾蝦/4隻",
+        "price": 55
+       },
+       {
+        "name": "干貝/6顆",
+        "price": 45
+       },
+       {
+        "name": "香烤雞胸肉",
+        "price": 45
+       },
+       {
+        "name": "阿根廷冰魷",
+        "price": 35
+       },
+       {
+        "name": "豆腐(非基改)",
+        "price": 20
+       },
+       {
+        "name": "雞蛋",
+        "price": 25
+       }
+      ]
+     },
+     {
+      "title": "基底量",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "基底量正常",
+        "price": 0
+       },
+       {
+        "name": "基底量少",
+        "price": 0
+       },
+       {
+        "name": "基底量多　 【限全飯】",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本蛋白質(招牌奶鮭)",
+      "min": 2,
+      "max": 2,
+      "options": [
+       {
+        "name": "挪威鮭魚(生)",
+        "price": 0
+       },
+       {
+        "name": "奶香芥末                【蛋奶素】",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本配菜(招牌奶鮭)",
+      "min": 6,
+      "max": 6,
+      "options": [
+       {
+        "name": "洋蔥",
+        "price": 0
+       },
+       {
+        "name": "黃瓜(組)",
+        "price": 0
+       },
+       {
+        "name": "毛豆",
+        "price": 0
+       },
+       {
+        "name": "海藻沙拉",
+        "price": 0
+       },
+       {
+        "name": "蔾麥",
+        "price": 0
+       },
+       {
+        "name": "青蔥",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本配料(招牌奶鮭)",
+      "min": 2,
+      "max": 2,
+      "options": [
+       {
+        "name": "海苔",
+        "price": 0
+       },
+       {
+        "name": "芝麻",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "醬料選擇",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "醬料另外放",
+        "price": 0
+       },
+       {
+        "name": "醬料直接放",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基底選一(組)",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "白米",
+        "price": 0
+       },
+       {
+        "name": "糙米",
+        "price": 0
+       },
+       {
+        "name": "萵苣",
+        "price": 10
+       },
+       {
+        "name": "綜合生菜",
+        "price": 10
+       },
+       {
+        "name": "白米                糙米",
+        "price": 0
+       },
+       {
+        "name": "白米                綜合生菜",
+        "price": 5
+       },
+       {
+        "name": "糙米                綜合生菜",
+        "price": 5
+       },
+       {
+        "name": "白米                萵苣",
+        "price": 5
+       },
+       {
+        "name": "糙米                萵苣",
+        "price": 5
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "油醋干貝蝦",
+    "price": 199,
+    "groups": [
+     {
+      "title": "加點蛋白質",
+      "min": 0,
+      "max": 8,
+      "options": [
+       {
+        "name": "酪梨泥",
+        "price": 45
+       },
+       {
+        "name": "挪威鮭魚(生)",
+        "price": 65
+       },
+       {
+        "name": "煙燻鮭魚",
+        "price": 70
+       },
+       {
+        "name": "鮪魚(生)",
+        "price": 55
+       },
+       {
+        "name": "辣鮪魚泥(生)",
+        "price": 40
+       },
+       {
+        "name": "鳳尾蝦/4隻",
+        "price": 55
+       },
+       {
+        "name": "干貝/6顆",
+        "price": 45
+       },
+       {
+        "name": "香烤雞胸肉",
+        "price": 45
+       },
+       {
+        "name": "阿根廷冰魷",
+        "price": 35
+       },
+       {
+        "name": "豆腐(非基改)",
+        "price": 20
+       },
+       {
+        "name": "雞蛋",
+        "price": 25
+       }
+      ]
+     },
+     {
+      "title": "基底量",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "基底量正常",
+        "price": 0
+       },
+       {
+        "name": "基底量少",
+        "price": 0
+       },
+       {
+        "name": "基底量多　 【限全飯】",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "醬料選擇",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "醬料另外放",
+        "price": 0
+       },
+       {
+        "name": "醬料直接放",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本配菜(油醋干貝蝦)無法更換",
+      "min": 6,
+      "max": 6,
+      "options": [
+       {
+        "name": "洋蔥",
+        "price": 0
+       },
+       {
+        "name": "番茄(組)",
+        "price": 0
+       },
+       {
+        "name": "黃瓜(組)",
+        "price": 0
+       },
+       {
+        "name": "毛豆",
+        "price": 0
+       },
+       {
+        "name": "馬鈴薯",
+        "price": 0
+       },
+       {
+        "name": "藜麥",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本配料(油醋干貝蝦)無法更換",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "芝麻",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本醬料(油醋干貝蝦)無法更換",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "芥末油醋醬【葷】",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本蛋白質(油醋干貝蝦)無法更換",
+      "min": 2,
+      "max": 2,
+      "options": [
+       {
+        "name": "鳳尾蝦/5隻",
+        "price": 0
+       },
+       {
+        "name": "干貝/6顆",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基底選一(組)",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "白米",
+        "price": 0
+       },
+       {
+        "name": "糙米",
+        "price": 0
+       },
+       {
+        "name": "萵苣",
+        "price": 10
+       },
+       {
+        "name": "綜合生菜",
+        "price": 10
+       },
+       {
+        "name": "白米                糙米",
+        "price": 0
+       },
+       {
+        "name": "白米                綜合生菜",
+        "price": 5
+       },
+       {
+        "name": "糙米                綜合生菜",
+        "price": 5
+       },
+       {
+        "name": "白米                萵苣",
+        "price": 5
+       },
+       {
+        "name": "糙米                萵苣",
+        "price": 5
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "墨西哥起司雞飯",
+    "price": 179,
+    "groups": [
+     {
+      "title": "加點蛋白質",
+      "min": 0,
+      "max": 8,
+      "options": [
+       {
+        "name": "酪梨泥",
+        "price": 45
+       },
+       {
+        "name": "挪威鮭魚(生)",
+        "price": 65
+       },
+       {
+        "name": "煙燻鮭魚",
+        "price": 70
+       },
+       {
+        "name": "鮪魚(生)",
+        "price": 55
+       },
+       {
+        "name": "辣鮪魚泥(生)",
+        "price": 40
+       },
+       {
+        "name": "鳳尾蝦/4隻",
+        "price": 55
+       },
+       {
+        "name": "干貝/6顆",
+        "price": 45
+       },
+       {
+        "name": "香烤雞胸肉",
+        "price": 45
+       },
+       {
+        "name": "阿根廷冰魷",
+        "price": 35
+       },
+       {
+        "name": "豆腐(非基改)",
+        "price": 20
+       },
+       {
+        "name": "雞蛋",
+        "price": 25
+       }
+      ]
+     },
+     {
+      "title": "基底量",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "基底量正常",
+        "price": 0
+       },
+       {
+        "name": "基底量少",
+        "price": 0
+       },
+       {
+        "name": "基底量多　 【限全飯】",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本蛋白質(起司雞)",
+      "min": 2,
+      "max": 2,
+      "options": [
+       {
+        "name": "香烤雞胸肉",
+        "price": 0
+       },
+       {
+        "name": "墨西哥起司醬【葷】",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本配菜(起司雞)",
+      "min": 5,
+      "max": 5,
+      "options": [
+       {
+        "name": "玉米",
+        "price": 0
+       },
+       {
+        "name": "洋蔥",
+        "price": 0
+       },
+       {
+        "name": "番茄(組)",
+        "price": 0
+       },
+       {
+        "name": "青椒",
+        "price": 0
+       },
+       {
+        "name": "香菜(組)",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基本配料(起司雞)",
+      "min": 2,
+      "max": 2,
+      "options": [
+       {
+        "name": "芝麻",
+        "price": 0
+       },
+       {
+        "name": "蒜蔥酥",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "醬料選擇",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "醬料另外放",
+        "price": 0
+       },
+       {
+        "name": "醬料直接放",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "不要香菜",
+      "min": 0,
+      "max": 1,
+      "options": [
+       {
+        "name": "不要香菜換黃瓜",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "基底選一(組)",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "白米",
+        "price": 0
+       },
+       {
+        "name": "糙米",
+        "price": 0
+       },
+       {
+        "name": "萵苣",
+        "price": 10
+       },
+       {
+        "name": "綜合生菜",
+        "price": 10
+       },
+       {
+        "name": "白米                糙米",
+        "price": 0
+       },
+       {
+        "name": "白米                綜合生菜",
+        "price": 5
+       },
+       {
+        "name": "糙米                綜合生菜",
+        "price": 5
+       },
+       {
+        "name": "白米                萵苣",
+        "price": 5
+       },
+       {
+        "name": "糙米                萵苣",
+        "price": 5
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "title": "創意自選波奇",
+  "items": [
+   {
+    "name": "創意自選波奇",
+    "price": 125,
+    "groups": [
+     {
+      "title": "基底選一",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "白米",
+        "price": 0
+       },
+       {
+        "name": "糙米",
+        "price": 0
+       },
+       {
+        "name": "萵苣",
+        "price": 0
+       },
+       {
+        "name": "綜合生菜",
+        "price": 0
+       },
+       {
+        "name": "白米                糙米",
+        "price": 0
+       },
+       {
+        "name": "白米                綜合生菜",
+        "price": 0
+       },
+       {
+        "name": "糙米                綜合生菜",
+        "price": 0
+       },
+       {
+        "name": "白米                萵苣",
+        "price": 0
+       },
+       {
+        "name": "糙米                萵苣",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "醬汁選一",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "經典波奇【全素】",
+        "price": 0
+       },
+       {
+        "name": "波奇特調【葷】",
+        "price": 0
+       },
+       {
+        "name": "和風柚香                【全素】",
+        "price": 0
+       },
+       {
+        "name": "日式芝麻                【全素】",
+        "price": 0
+       },
+       {
+        "name": "香辣脆油【五辛素】",
+        "price": 0
+       },
+       {
+        "name": "美式辣醬                【五辛素】",
+        "price": 0
+       },
+       {
+        "name": "奶香芥末                【蛋奶素】",
+        "price": 0
+       },
+       {
+        "name": "奶香照燒                【蛋奶素】",
+        "price": 0
+       },
+       {
+        "name": "墨西哥燒烤醬              【葷】",
+        "price": 0
+       },
+       {
+        "name": "芥末油醋醬【葷】",
+        "price": 0
+       },
+       {
+        "name": "果醋青花椒醬【辣.全素】",
+        "price": 0
+       },
+       {
+        "name": "無需加醬",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "配菜選六",
+      "min": 6,
+      "max": 6,
+      "options": [
+       {
+        "name": "玉米",
+        "price": 0
+       },
+       {
+        "name": "洋蔥",
+        "price": 0
+       },
+       {
+        "name": "鳳梨",
+        "price": 0
+       },
+       {
+        "name": "黃瓜",
+        "price": 0
+       },
+       {
+        "name": "蒜香菠菜",
+        "price": 0
+       },
+       {
+        "name": "青椒",
+        "price": 0
+       },
+       {
+        "name": "毛豆",
+        "price": 0
+       },
+       {
+        "name": "黃豆芽",
+        "price": 0
+       },
+       {
+        "name": "鷹嘴豆泥",
+        "price": 0
+       },
+       {
+        "name": "海藻沙拉",
+        "price": 0
+       },
+       {
+        "name": "馬鈴薯",
+        "price": 0
+       },
+       {
+        "name": "蟹肉沙拉",
+        "price": 0
+       },
+       {
+        "name": "金針菇(微辣)",
+        "price": 0
+       },
+       {
+        "name": "魚卵",
+        "price": 0
+       },
+       {
+        "name": "紫薯泥",
+        "price": 0
+       },
+       {
+        "name": "藜麥",
+        "price": 0
+       },
+       {
+        "name": "香菜",
+        "price": 0
+       },
+       {
+        "name": "青蔥",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "配料選二",
+      "min": 1,
+      "max": 2,
+      "options": [
+       {
+        "name": "乳酪丁",
+        "price": 5
+       },
+       {
+        "name": "海苔",
+        "price": 0
+       },
+       {
+        "name": "芝麻",
+        "price": 0
+       },
+       {
+        "name": "花生碎",
+        "price": 0
+       },
+       {
+        "name": "南瓜籽",
+        "price": 0
+       },
+       {
+        "name": "蒜蔥酥",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "加點蛋白質",
+      "min": 0,
+      "max": 8,
+      "options": [
+       {
+        "name": "酪梨泥",
+        "price": 45
+       },
+       {
+        "name": "挪威鮭魚(生)",
+        "price": 65
+       },
+       {
+        "name": "煙燻鮭魚",
+        "price": 70
+       },
+       {
+        "name": "鮪魚(生)",
+        "price": 55
+       },
+       {
+        "name": "辣鮪魚泥(生)",
+        "price": 40
+       },
+       {
+        "name": "鳳尾蝦/4隻",
+        "price": 55
+       },
+       {
+        "name": "干貝/6顆",
+        "price": 45
+       },
+       {
+        "name": "香烤雞胸肉",
+        "price": 45
+       },
+       {
+        "name": "阿根廷冰魷",
+        "price": 35
+       },
+       {
+        "name": "豆腐(非基改)",
+        "price": 20
+       },
+       {
+        "name": "雞蛋",
+        "price": 25
+       }
+      ]
+     },
+     {
+      "title": "加點配菜",
+      "min": 0,
+      "max": 6,
+      "options": [
+       {
+        "name": "玉米",
+        "price": 10
+       },
+       {
+        "name": "洋蔥",
+        "price": 10
+       },
+       {
+        "name": "鳳梨",
+        "price": 10
+       },
+       {
+        "name": "黃瓜",
+        "price": 10
+       },
+       {
+        "name": "蒜香菠菜",
+        "price": 10
+       },
+       {
+        "name": "青椒",
+        "price": 10
+       },
+       {
+        "name": "毛豆",
+        "price": 10
+       },
+       {
+        "name": "黃豆芽",
+        "price": 10
+       },
+       {
+        "name": "鷹嘴豆泥",
+        "price": 10
+       },
+       {
+        "name": "海藻沙拉",
+        "price": 10
+       },
+       {
+        "name": "馬鈴薯",
+        "price": 10
+       },
+       {
+        "name": "蟹肉沙拉",
+        "price": 10
+       },
+       {
+        "name": "金針菇(微辣)",
+        "price": 10
+       },
+       {
+        "name": "魚卵",
+        "price": 10
+       },
+       {
+        "name": "紫薯泥",
+        "price": 10
+       },
+       {
+        "name": "藜麥",
+        "price": 10
+       },
+       {
+        "name": "香菜",
+        "price": 10
+       },
+       {
+        "name": "青蔥",
+        "price": 10
+       }
+      ]
+     },
+     {
+      "title": "醬料放置",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "醬料另外放",
+        "price": 0
+       },
+       {
+        "name": "醬料直接放",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "加點配料",
+      "min": 0,
+      "max": 6,
+      "options": [
+       {
+        "name": "乳酪丁",
+        "price": 10
+       },
+       {
+        "name": "海苔",
+        "price": 5
+       },
+       {
+        "name": "芝麻",
+        "price": 5
+       },
+       {
+        "name": "花生碎",
+        "price": 5
+       },
+       {
+        "name": "南瓜籽",
+        "price": 5
+       },
+       {
+        "name": "蒜蔥酥",
+        "price": 5
+       }
+      ]
+     },
+     {
+      "title": "基底量",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "基底量正常",
+        "price": 0
+       },
+       {
+        "name": "基底量少",
+        "price": 0
+       },
+       {
+        "name": "基底量多　 【限全飯】",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "加點醬料(外帶包)",
+      "min": 0,
+      "max": 3,
+      "options": [
+       {
+        "name": "經典波奇【全素】",
+        "price": 15
+       },
+       {
+        "name": "波奇特調【葷】",
+        "price": 15
+       },
+       {
+        "name": "和風柚香                【全素】",
+        "price": 15
+       },
+       {
+        "name": "日式芝麻                【全素】",
+        "price": 15
+       },
+       {
+        "name": "香辣脆油【五辛素】",
+        "price": 15
+       },
+       {
+        "name": "美式辣醬                【五辛素】",
+        "price": 15
+       },
+       {
+        "name": "奶香芥末                【蛋奶素】",
+        "price": 15
+       },
+       {
+        "name": "奶香照燒                【蛋奶素】",
+        "price": 15
+       },
+       {
+        "name": "墨西哥燒烤醬              【葷】",
+        "price": 15
+       },
+       {
+        "name": "芥末油醋醬【葷】",
+        "price": 15
+       },
+       {
+        "name": "果醋青花椒醬【辣.全素】",
+        "price": 15
+       }
+      ]
+     },
+     {
+      "title": "蛋白質自選",
+      "min": 1,
+      "max": 1,
+      "options": [
+       {
+        "name": "酪梨泥",
+        "price": 25
+       },
+       {
+        "name": "挪威鮭魚(生)",
+        "price": 45
+       },
+       {
+        "name": "煙燻鮭魚",
+        "price": 50
+       },
+       {
+        "name": "鮪魚(生)",
+        "price": 35
+       },
+       {
+        "name": "辣鮪魚泥(生)",
+        "price": 20
+       },
+       {
+        "name": "鳳尾蝦/4隻",
+        "price": 35
+       },
+       {
+        "name": "干貝/6顆",
+        "price": 25
+       },
+       {
+        "name": "香烤雞胸肉",
+        "price": 25
+       },
+       {
+        "name": "阿根廷冰魷",
+        "price": 15
+       },
+       {
+        "name": "豆腐(非基改)",
+        "price": 0
+       },
+       {
+        "name": "雞蛋",
+        "price": 5
+       }
+      ]
+     },
+     {
+      "title": "餐具選項",
+      "min": 0,
+      "max": 1,
+      "options": [
+       {
+        "name": "不需要餐具",
+        "price": 0
+       }
+      ]
+     },
+     {
+      "title": "加購紙袋",
+      "min": 0,
+      "max": 1,
+      "options": [
+       {
+        "name": "大紙袋                    可裝3~6碗",
+        "price": 7
+       },
+       {
+        "name": "小紙袋                    可裝1~2碗",
+        "price": 5
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "title": "湯品",
+  "items": [
+   {
+    "name": "味噌湯",
+    "price": 20,
+    "groups": []
+   },
+   {
+    "name": "花椰菜馬鈴薯蔬菜湯",
+    "price": 60,
+    "groups": []
+   },
+   {
+    "name": "番茄鷹嘴豆蔬菜湯",
+    "price": 60,
+    "groups": []
+   }
+  ]
+ },
+ {
+  "title": "飲料",
+  "items": [
+   {
+    "name": "麥茶",
+    "price": 20,
+    "kcal": 3.7,
+    "groups": []
+   },
+   {
+    "name": "輕柚冰茶",
+    "price": 35,
+    "groups": []
+   },
+   {
+    "name": "檸檬汁",
+    "price": 35,
+    "groups": []
+   },
+   {
+    "name": "蔓越莓冰茶",
+    "price": 35,
+    "groups": []
+   },
+   {
+    "name": "沛綠雅氣泡水",
+    "price": 50,
+    "groups": []
+   }
+  ]
+ },
+ {
+  "title": "紙袋",
+  "items": [
+   {
+    "name": "大紙袋                    可裝3~6碗",
+    "price": 7,
+    "groups": []
+   },
+   {
+    "name": "小紙袋                    可裝1~2碗",
+    "price": 5,
+    "groups": []
+   }
+  ]
+ }
+]
