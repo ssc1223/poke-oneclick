@@ -136,7 +136,7 @@ function pickFor(issue, k, picks) {
 /**
  * 依使用者選擇處理品項層級問題。
  * mode: 'skip'（有問題的品項略過）| 'replace'（有建議就替代，沒有就略過）
- * picks: { [issue 索引]: 使用者在下拉選單選的替代名稱 }
+ * picks: { [issue 索引]: 使用者選的替代名稱（按鈕列表；空字串＝略過） }
  */
 export function resolveItems(items, issues, mode, picks) {
   const out = items.map((x) => ({ ...x }));

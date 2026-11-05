@@ -2,9 +2,9 @@
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { polyfillOffsetParent } from './setup-dom.js';
 import { mountMockShop } from '../mock/mock-shop.js';
-import { runRestore } from '../src/bookmarklet/restore-core.js';
+import { runRestore, ensureModalsClosed, makeTiming } from '../src/bookmarklet/restore-core.js';
 import { startRecording, saveLocalSet, loadLocalSets } from '../src/bookmarklet/save-core.js';
-import { snapshotMenu, snapshotGroups, groups, cta, parseAddOn, parsePrice, KEY } from '../src/bookmarklet/dom.js';
+import { snapshotMenu, snapshotGroups, groups, cta, parseAddOn, parsePrice, KEY, anyModalOpen, modalTitle, modalItemName, modalShowsItem, looksLikeItemName, activeModal } from '../src/bookmarklet/dom.js';
 
 import cats from '../mock/menu-data.json';
 const FAST = 0.01;
@@ -65,6 +65,106 @@ describe('一鍵點餐（模擬電小二頁面）', () => {
     expect(log[0]).toEqual({ stage: 'menu', kinds: ['item-renamed'] });
     expect(shop.cart.map((x) => x.item)).toEqual(['冰麥茶']);
     expect(res.ok).toEqual(['冰麥茶 x2']);
+  });
+
+  it('執行前已開著選項視窗時：先關閉再點餐，兩份都加入且報告與購物車一致', async () => {
+    // 貼近真實電小二：.modal.show + backdrop 擋住菜單；紀錄裡「冰麥茶」在菜單上是「麥茶」，改選「輕柚冰茶」
+    const shop = mountMockShop(document, cats, { announcement: false });
+    openCard('麥茶');
+    expect(anyModalOpen()).toBe(true);
+    expect(modalTitle()).toBe('數量編輯');
+    expect(modalItemName()).toBe('麥茶');
+    // 開著視窗時點其他卡片無效（以前 mock 會直接切換，蓋住這個 bug）
+    openCard('創意自選波奇');
+    expect(modalItemName()).toBe('麥茶');
+
+    const iced = { item: '冰麥茶', qty: 1, comment: '', options: {}, price: 20 };
+    const res = await runRestore(
+      { name: '實測', items: [myPoke, iced] },
+      {
+        confirm: async (issues, stage) => {
+          expect(stage).toBe('menu');
+          const k = issues.findIndex((i) => i.item === '冰麥茶');
+          expect(k).toBeGreaterThanOrEqual(0);
+          expect(issues[k].choices).toContain('輕柚冰茶');
+          return { mode: 'replace', picks: { [k]: '輕柚冰茶' } };
+        },
+        scale: FAST,
+      },
+    );
+
+    expect(res.cancelled).toBe(false);
+    expect(res.bad).toEqual([]);
+    expect(res.ok).toEqual(['創意自選波奇 x1', '輕柚冰茶 x1']);
+    expect(shop.cart.map((x) => x.item)).toEqual(['創意自選波奇', '輕柚冰茶']);
+    expect(shop.cart[0].options['配菜選六'].sort()).toEqual([...myPoke.options['配菜選六']].sort());
+    expect(anyModalOpen()).toBe(false);
+    expect(shop.checkoutClicked).toBe(false);
+  });
+
+  it('真實 DOM：.modal-title 是數量編輯時仍能還原（品名在 body）', async () => {
+    const shop = mountMockShop(document, cats, { announcement: false });
+    openCard('輕柚冰茶');
+    expect(modalTitle()).toBe('數量編輯');
+    expect(modalItemName()).toBe('輕柚冰茶');
+    expect(modalShowsItem('輕柚冰茶')).toBe(true);
+    expect(modalShowsItem('創意自選波奇')).toBe(false);
+    // textContent 會黏成「輕柚冰茶….大卡」，不能整段被「大卡」規則誤殺
+    expect(activeModal().querySelector('.modal-body').textContent).toContain('大卡');
+    document.querySelector('.modal.show .btn-close').click();
+
+    const iced = { item: '冰麥茶', qty: 1, comment: '', options: {}, price: 20 };
+    const res = await runRestore(
+      { name: '無前置視窗', items: [myPoke, iced] },
+      {
+        confirm: async (issues) => {
+          const k = issues.findIndex((i) => i.item === '冰麥茶');
+          return { mode: 'replace', picks: { [k]: '輕柚冰茶' } };
+        },
+        scale: FAST,
+      },
+    );
+    expect(res.bad).toEqual([]);
+    expect(res.ok).toEqual(['創意自選波奇 x1', '輕柚冰茶 x1']);
+    expect(shop.cart.map((x) => x.item)).toEqual(['創意自選波奇', '輕柚冰茶']);
+  });
+
+  it('modalItemName 對真實站 HTML（web-text-2xl class）回傳品名，不會回傳數量 1', () => {
+    document.body.innerHTML = `
+      <div class="modal fade show" id="itemModal" style="display:block">
+        <div class="modal-dialog"><div class="modal-content">
+          <div class="modal-header"><h5 class="modal-title">數量編輯</h5>
+            <button type="button" class="btn-close" aria-label="Close">×</button></div>
+          <div class="modal-body">
+            <div class="d-flex justify-content-center"><div style="background-image:url(about:blank)"></div></div>
+            <div class="w-100 "><div class="px-3 mt-2"><div></div></div>
+              <div class="web-text-2xl py-0 px-3 fw-bolder">輕柚冰茶</div>
+              <div class="web-text-md pb-3 px-3" style="color:#888">90.2 大卡</div></div>
+            <div class="w-100 border-top border-bottom">
+              <button type="button" data-testid="attributeQuantityEditor-minus">－</button>
+              <span data-testid="attributeQuantityEditor-edit">1</span>
+              <button type="button" data-testid="attributeQuantityEditor-add">＋</button>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" data-testid="attributeCTALayout">加入購物車</button>
+          </div>
+        </div></div>
+      </div>`;
+    expect(modalTitle()).toBe('數量編輯');
+    expect(modalItemName()).toBe('輕柚冰茶');
+    expect(looksLikeItemName('1')).toBe(false);
+    expect(modalShowsItem('輕柚冰茶')).toBe(true);
+    expect(modalShowsItem('創意自選波奇')).toBe(false);
+  });
+
+  it('ensureModalsClosed 會關掉手動開啟的視窗', async () => {
+    mountMockShop(document, cats, { announcement: false });
+    openCard('麥茶');
+    expect(anyModalOpen()).toBe(true);
+    const ok = await ensureModalsClosed(makeTiming(FAST));
+    expect(ok).toBe(true);
+    expect(anyModalOpen()).toBe(false);
   });
 
   it('品項下架／售完：選「略過繼續」只點其他品項', async () => {

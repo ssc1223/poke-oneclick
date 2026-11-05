@@ -66,7 +66,7 @@ export function mountMockShop(doc, cats, mods = {}) {
     </div></div></div>
     <div class="cartbar"><span id="cartCount">購物車 0 件</span><button type="button" id="checkout">前往結帳</button></div>
     <div class="modal fade" id="itemModal" style="display:none"><div class="modal-dialog"><div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title"></h5><button type="button" class="btn-close" aria-label="Close">×</button></div>
+      <div class="modal-header"><h5 class="modal-title">數量編輯</h5><button type="button" class="btn-close" aria-label="Close">×</button></div>
       <div class="modal-body"></div>
       <div class="modal-footer">
         <textarea data-testid="comment" placeholder="備註"></textarea>
@@ -87,7 +87,24 @@ export function mountMockShop(doc, cats, mods = {}) {
   const errEl = modal.querySelector('.err');
   let cur = null; // { it, qty, comment, sel: Map<group, Map<option, n>> }
 
-  const close = () => { modal.style.display = 'none'; modal.className = 'modal fade'; cur = null; };
+  const backdropId = 'mockModalBackdrop';
+  const removeBackdrop = () => { const bd = doc.getElementById(backdropId); if (bd) bd.remove(); };
+  const ensureBackdrop = () => {
+    if (doc.getElementById(backdropId)) return;
+    const bd = doc.createElement('div');
+    bd.id = backdropId;
+    bd.className = 'modal-backdrop fade show';
+    bd.style.cssText = 'position:fixed;inset:0;z-index:1040;background:#000;opacity:.5';
+    // 真實 Bootstrap：點 backdrop 通常會關視窗
+    bd.addEventListener('click', close);
+    doc.body.appendChild(bd);
+  };
+  const close = () => {
+    modal.style.display = 'none';
+    modal.className = 'modal fade';
+    cur = null;
+    removeBackdrop();
+  };
   modal.querySelector('.btn-close').addEventListener('click', close);
   // 模擬 React：用 input 事件同步狀態
   comment.addEventListener('input', () => { if (cur) cur.comment = comment.value; });
@@ -99,11 +116,19 @@ export function mountMockShop(doc, cats, mods = {}) {
   function open(it) {
     if (ann && ann.isConnected) return; // 公告沒關掉時點不到
     cur = { it, qty: 1, comment: '', sel: new Map() };
-    modal.querySelector('.modal-title').textContent = it.name;
+    // 真實電小二：header 固定「數量編輯」，品名在 body 大字（不是 .modal-title）
+    modal.querySelector('.modal-title').textContent = '數量編輯';
     qtyEl.textContent = '1';
     comment.value = '';
     errEl.textContent = '';
-    mBody.innerHTML = '';
+    // 結構對齊真實電小二：圖片 → web-text-2xl 品名 → 熱量（textContent 會黏成「品名90.2 大卡」）
+    const kcal = it.kcal != null ? it.kcal : fakeKcal(it.name);
+    mBody.innerHTML = `
+      <div class="d-flex justify-content-center"><div style="background-image:url(about:blank);width:72px;height:72px;background-size:cover"></div></div>
+      <div class="w-100 "><div class="px-3 mt-2"><div></div></div>
+        <div class="web-text-2xl py-0 px-3 fw-bolder">${esc(it.name)}</div>
+        <div class="web-text-md pb-3 px-3" style="color:#6c757d">${kcal} 大卡</div></div>
+      <div class="w-100 border-top border-bottom"></div>`;
     it.groups.forEach((g, gi) => {
       const sel = new Map();
       cur.sel.set(g.title, sel);
@@ -145,11 +170,15 @@ export function mountMockShop(doc, cats, mods = {}) {
       mBody.appendChild(wrap);
     });
     modal.style.display = 'block';
+    modal.style.zIndex = '1055';
     modal.className = 'modal fade show';
+    ensureBackdrop();
   }
 
   body.querySelectorAll('[data-testid^="menuItems-item"]').forEach((card) => {
     card.addEventListener('click', () => {
+      // 真實電小二：.modal.show 開著時點不到後面的菜單（被 backdrop 擋住）
+      if (modal.classList.contains('show')) return;
       const it = menu[card.dataset.ci].items[card.dataset.ii];
       if (!it.soldOut) open(it);
     });

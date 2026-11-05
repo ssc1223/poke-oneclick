@@ -186,6 +186,114 @@ export const cta = () => {
   return list.find(visible) || null;
 };
 
+/** 視窗 header 文字（真實電小二固定是「數量編輯」，不是品名） */
+export const modalTitle = () => {
+  const m = activeModal();
+  if (!m) return '';
+  // 必須分開查：querySelector('a, b') 是 DOM 順序，不是選擇器順序
+  const t = m.querySelector('.modal-title') || m.querySelector('.modal-header h5');
+  if (t) return norm(t.textContent);
+  const header = m.querySelector('.modal-header');
+  if (!header) return '';
+  const clone = header.cloneNode(true);
+  clone.querySelectorAll('button, .btn-close, [aria-label=Close]').forEach((b) => b.remove());
+  return norm(clone.textContent);
+};
+
+const GENERIC_MODAL_TITLE = /^(數量編輯|Close|×)$/;
+// 注意：不能把 .px-3 整類排除——真實站品名本身就帶 px-3
+const MODAL_NAME_SKIP = '.attribute-category-title, .attribute-option-title, label, textarea, button, input, [data-testid^="attributeQuantity"], [data-testid^="quantityCounter"], [data-testid=attributeCTALayout]';
+
+/** 看起來像品名（不是數量「1」、不是熱量列） */
+export function looksLikeItemName(t) {
+  const s = norm(t);
+  if (!s || s.length < 2 || s.length > 60) return false;
+  if (GENERIC_MODAL_TITLE.test(s)) return false;
+  if (/^[\d.,]+$/.test(s)) return false; // 數量編輯殘留的「1」
+  if (/大卡|kcal|^\$/.test(s)) return false;
+  return true;
+}
+
+/**
+ * 目前選項視窗裡的真正品名。
+ * 真實電小二：H5.modal-title＝「數量編輯」；品名是
+ *   <div class="web-text-2xl … fw-bolder">輕柚冰茶</div>
+ * （class 不是 style；不可用 [style*=web-text-]）
+ */
+export function modalItemName() {
+  const m = activeModal();
+  if (!m) return '';
+  const body = m.querySelector('.modal-body');
+  if (!body) return '';
+
+  const marked = body.querySelector('[data-poke-item-name], .poke-item-name');
+  if (marked && looksLikeItemName(marked.textContent)) return norm(marked.textContent);
+
+  // 優先：class 上的 web-text-*（實測 2xl + fw-bolder）
+  const classSels = [
+    '.web-text-2xl.fw-bolder',
+    '.web-text-2xl',
+    '[class*="web-text-"].fw-bolder',
+    '.web-text-xl',
+    '.web-text-lg',
+    '[style*="web-text-xl"]',
+    '[style*="web-text-lg"]',
+    '[style*="web-text-md"]',
+  ];
+  for (const sel of classSels) {
+    for (const el of body.querySelectorAll(sel)) {
+      if (el.closest(MODAL_NAME_SKIP)) continue;
+      // 選項列裡的字不要
+      if (el.closest('.group, .opts') && el.matches('.web-text-md, [style*="web-text-md"]')) continue;
+      const t = norm(el.textContent);
+      if (looksLikeItemName(t)) return t;
+    }
+  }
+
+  // 退而求其次：body 文字裡拆出「…大卡」前面的品名（真實站常黏成「輕柚冰茶90.2 大卡」）
+  const raw = norm(body.textContent || '');
+  const beforeKcal = raw.match(/^(.+?)\s*[\d.,]+\s*(?:大卡|kcal)/i);
+  if (beforeKcal && looksLikeItemName(beforeKcal[1])) return norm(beforeKcal[1]);
+
+  return '';
+}
+
+/**
+ * 目前視窗是否在顯示指定品項。
+ * true＝確定是、false＝確定不是、null＝比對不到（呼叫端不要直接當失敗）。
+ */
+export function modalShowsItem(itemName) {
+  const m = activeModal();
+  if (!m) return false;
+  const want = norm(itemName);
+  if (!want) return null;
+  const got = modalItemName();
+  if (got) {
+    if (got === want || got.includes(want) || want.includes(got)) return true;
+    // 只有抓到「像品名」的字才回 false；數字／太短的一律當 null
+    return looksLikeItemName(got) ? false : null;
+  }
+  const body = m.querySelector('.modal-body') || m;
+  const text = norm(body.textContent || '');
+  if (text.includes(want)) return true;
+  return null;
+}
+
+/** 是否還有開著的選項視窗（.modal.show） */
+export const anyModalOpen = () => !!document.querySelector('.modal.show');
+
+/**
+ * 關掉目前的選項視窗：先點關閉鈕，再試 backdrop。
+ * 回傳是否有發出關閉動作（不保證動畫已結束）。
+ */
+export function closeModal() {
+  const b = document.querySelector('.modal.show .btn-close, .modal.show [aria-label=Close], .modal.show [aria-label="關閉"], .modal.show [data-testid*="close" i]');
+  if (b) { tap(b); return true; }
+  const bd = document.querySelector('.modal-backdrop.show, .modal-backdrop');
+  if (bd) { tap(bd); return true; }
+  return false;
+}
+
 export const setTextareaValue = (c, v) => {
   const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
   set.call(c, v);

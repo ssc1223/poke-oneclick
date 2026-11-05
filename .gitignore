@@ -2,5 +2,8 @@ node_modules/
 dist/
 src/generated/
 public/bookmarklets/
+tests/e2e/fixtures/
+test-results/
+playwright-report/
 *.log
 .DS_Store

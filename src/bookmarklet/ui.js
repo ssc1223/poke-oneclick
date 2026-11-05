@@ -20,11 +20,14 @@ li{margin:4px 0}
 select,input,textarea{width:100%;font-size:16px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);margin-top:6px}
 textarea{min-height:90px}
 .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-button{flex:1 1 auto;min-height:44px;font-size:16px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--fg);padding:8px 12px;cursor:pointer}
+button{flex:1 1 auto;min-height:44px;font-size:16px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--fg);padding:8px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 a.btnlink{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:44px;font-size:16px;border-radius:10px;padding:8px 12px;text-decoration:none;background:var(--acc);color:#fff;font-weight:600}
 summary{cursor:pointer;margin-top:10px}
 button.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
 button.list{display:block;width:100%;text-align:left;margin:6px 0}
+.choices{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+button.choice{flex:none;width:100%;text-align:left;margin:0}
+button.choice[aria-pressed="true"]{border-color:var(--acc);background:var(--acc);color:#fff;font-weight:600}
 .row{display:flex;align-items:center;gap:8px}
 .row .grow{flex:1}
 `;
@@ -47,8 +50,15 @@ export function h(tag, props, ...kids) {
 /** 建立一個掛在頁面上的面板，回傳 { root, close } */
 export function mount(content, { bar = false } = {}) {
   const host = h('div', { 'data-poke-oneclick': '1' });
+  // 避免電小二／Bootstrap modal 的事件委派或 focus trap 搶走面板內的觸控
+  host.style.cssText = 'position:relative;z-index:2147483647;isolation:isolate';
   const shadow = host.attachShadow({ mode: 'open' });
-  shadow.append(h('style', null, CSS), h('div', { class: bar ? 'wrap bar' : 'wrap' }, h('div', { class: 'card' }, content)));
+  const wrap = h('div', { class: bar ? 'wrap bar' : 'wrap' }, h('div', { class: 'card' }, content));
+  // bubble 階段攔截：按鈕已先收到事件；阻止再冒泡到電小二／Bootstrap
+  for (const ev of ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'mousedown', 'mouseup']) {
+    wrap.addEventListener(ev, (e) => e.stopPropagation());
+  }
+  shadow.append(h('style', null, CSS), wrap);
   document.body.appendChild(host);
   return { root: shadow, host, close: () => host.remove() };
 }
