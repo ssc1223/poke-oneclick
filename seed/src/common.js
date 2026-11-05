@@ -1,0 +1,7 @@
+var KEY='cashierOneClick.v1';
+var norm=function(s){return (s||'').replace(/\s+/g,' ').trim();};
+var toast=function(m,ms){var d=document.createElement('div');d.textContent=m;d.style.cssText='position:fixed;left:8px;right:8px;top:8px;z-index:2147483647;background:#222;color:#fff;padding:12px;border-radius:10px;font-size:16px;white-space:pre-wrap';document.body.appendChild(d);setTimeout(function(){d.remove();},ms||3000);};
+var groups=function(){var out=[];document.querySelectorAll('.attribute-category-title').forEach(function(t){var g=t.parentElement.parentElement;out.push({title:norm(t.textContent),el:g});});return out;};
+var rows=function(g){var out=[];g.querySelectorAll('.attribute-option-title').forEach(function(t){var r=t.closest('.px-3')||t.parentElement.parentElement.parentElement;out.push({title:norm(t.textContent),el:r});});return out;};
+var rowState=function(r){var i=r.querySelector('input[type=radio],input[type=checkbox]');if(i)return {input:i,n:i.checked?1:0};var e=r.querySelector('[data-testid^="quantityCounter-edit"]');return {n:e?parseInt(e.textContent,10)||0:0,plus:r.querySelector('[data-testid^="quantityCounter-plus"]'),minus:function(){return r.querySelector('[data-testid^="quantityCounter-minus"]');}};};
+var tap=function(el){if(!el)return;if(el.click&&!(el instanceof SVGElement))el.click();else el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));};
