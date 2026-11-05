@@ -201,11 +201,24 @@ export const modalTitle = () => {
 };
 
 const GENERIC_MODAL_TITLE = /^(數量編輯|Close|×)$/;
-const MODAL_NAME_SKIP = '.attribute-category-title, .attribute-option-title, .px-3, label, textarea, button, input, .qty, [data-testid^="attributeQuantity"], [data-testid^="quantityCounter"], [data-testid=attributeCTALayout]';
+// 注意：不能把 .px-3 整類排除——真實站品名本身就帶 px-3
+const MODAL_NAME_SKIP = '.attribute-category-title, .attribute-option-title, label, textarea, button, input, [data-testid^="attributeQuantity"], [data-testid^="quantityCounter"], [data-testid=attributeCTALayout]';
+
+/** 看起來像品名（不是數量「1」、不是熱量列） */
+export function looksLikeItemName(t) {
+  const s = norm(t);
+  if (!s || s.length < 2 || s.length > 60) return false;
+  if (GENERIC_MODAL_TITLE.test(s)) return false;
+  if (/^[\d.,]+$/.test(s)) return false; // 數量編輯殘留的「1」
+  if (/大卡|kcal|^\$/.test(s)) return false;
+  return true;
+}
 
 /**
  * 目前選項視窗裡的真正品名。
- * 真實電小二：H5.modal-title＝「數量編輯」，品名在 .modal-body 圖片下方的大字。
+ * 真實電小二：H5.modal-title＝「數量編輯」；品名是
+ *   <div class="web-text-2xl … fw-bolder">輕柚冰茶</div>
+ * （class 不是 style；不可用 [style*=web-text-]）
  */
 export function modalItemName() {
   const m = activeModal();
@@ -214,24 +227,34 @@ export function modalItemName() {
   if (!body) return '';
 
   const marked = body.querySelector('[data-poke-item-name], .poke-item-name');
-  if (marked) return norm(marked.textContent);
+  if (marked && looksLikeItemName(marked.textContent)) return norm(marked.textContent);
 
-  for (const sel of ['[style*="web-text-xl"]', '[style*="web-text-lg"]', '[style*="web-text-md"]']) {
+  // 優先：class 上的 web-text-*（實測 2xl + fw-bolder）
+  const classSels = [
+    '.web-text-2xl.fw-bolder',
+    '.web-text-2xl',
+    '[class*="web-text-"].fw-bolder',
+    '.web-text-xl',
+    '.web-text-lg',
+    '[style*="web-text-xl"]',
+    '[style*="web-text-lg"]',
+    '[style*="web-text-md"]',
+  ];
+  for (const sel of classSels) {
     for (const el of body.querySelectorAll(sel)) {
       if (el.closest(MODAL_NAME_SKIP)) continue;
+      // 選項列裡的字不要
+      if (el.closest('.group, .opts') && el.matches('.web-text-md, [style*="web-text-md"]')) continue;
       const t = norm(el.textContent);
-      if (!t || GENERIC_MODAL_TITLE.test(t) || /大卡|kcal|^\$/.test(t) || t.length > 60) continue;
-      return t;
+      if (looksLikeItemName(t)) return t;
     }
   }
 
-  for (const child of body.children) {
-    if (child.querySelector && child.querySelector('.attribute-category-title')) break;
-    if (child.classList && child.classList.contains('group')) break;
-    const t = norm(child.textContent);
-    const line = t.split(/\n+/).map(norm).find((x) => x && !GENERIC_MODAL_TITLE.test(x) && !/大卡|kcal|^\$/.test(x) && x.length <= 60);
-    if (line) return line;
-  }
+  // 退而求其次：body 文字裡拆出「…大卡」前面的品名（真實站常黏成「輕柚冰茶90.2 大卡」）
+  const raw = norm(body.textContent || '');
+  const beforeKcal = raw.match(/^(.+?)\s*[\d.,]+\s*(?:大卡|kcal)/i);
+  if (beforeKcal && looksLikeItemName(beforeKcal[1])) return norm(beforeKcal[1]);
+
   return '';
 }
 
@@ -245,7 +268,11 @@ export function modalShowsItem(itemName) {
   const want = norm(itemName);
   if (!want) return null;
   const got = modalItemName();
-  if (got) return got === want || got.includes(want) || want.includes(got);
+  if (got) {
+    if (got === want || got.includes(want) || want.includes(got)) return true;
+    // 只有抓到「像品名」的字才回 false；數字／太短的一律當 null
+    return looksLikeItemName(got) ? false : null;
+  }
   const body = m.querySelector('.modal-body') || m;
   const text = norm(body.textContent || '');
   if (text.includes(want)) return true;

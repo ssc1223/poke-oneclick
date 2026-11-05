@@ -121,10 +121,14 @@ export function mountMockShop(doc, cats, mods = {}) {
     qtyEl.textContent = '1';
     comment.value = '';
     errEl.textContent = '';
-    mBody.innerHTML = `<div class="poke-item-head">
-      <div class="poke-item-name" data-poke-item-name style="font-size: var(--web-text-lg);font-weight:700">${esc(it.name)}</div>
-      <div class="text-muted">${it.kcal != null ? it.kcal : fakeKcal(it.name)} 大卡</div>
-    </div>`;
+    // 結構對齊真實電小二：圖片 → web-text-2xl 品名 → 熱量（textContent 會黏成「品名90.2 大卡」）
+    const kcal = it.kcal != null ? it.kcal : fakeKcal(it.name);
+    mBody.innerHTML = `
+      <div class="d-flex justify-content-center"><div style="background-image:url(about:blank);width:72px;height:72px;background-size:cover"></div></div>
+      <div class="w-100 "><div class="px-3 mt-2"><div></div></div>
+        <div class="web-text-2xl py-0 px-3 fw-bolder">${esc(it.name)}</div>
+        <div class="web-text-md pb-3 px-3" style="color:#6c757d">${kcal} 大卡</div></div>
+      <div class="w-100 border-top border-bottom"></div>`;
     it.groups.forEach((g, gi) => {
       const sel = new Map();
       cur.sel.set(g.title, sel);

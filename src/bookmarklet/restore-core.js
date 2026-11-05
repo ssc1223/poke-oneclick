@@ -104,14 +104,14 @@ export async function runRestore(set, { confirm, scale = 1, onProgress } = {}) {
     const card = findCard(it.item);
     if (!card) { bad.push(`${it.item}（菜單找不到）`); continue; }
     tap(card);
-    // 等到 CTA 出現；若讀得到品名則確認是目標項（真實站 .modal-title 是「數量編輯」不是品名）。
-    // 比對不到品名時不要判定失敗，只要視窗已開就繼續。
-    const opened = await until(() => {
+    // 等到 CTA；若品名可讀且明確是別的品項則繼續等（殘留視窗）。
+    // 比對不到／逾時但 CTA 已在 → 保底照舊版繼續，不要卡死。
+    let opened = await until(() => {
       if (!visible(cta())) return null;
-      const shown = modalShowsItem(it.item);
-      if (shown === false) return null; // 明確是別的品項（例如殘留視窗）
+      if (modalShowsItem(it.item) === false) return null;
       return cta();
-    });
+    }, 3000);
+    if (!opened && visible(cta())) opened = cta();
     if (!opened) { bad.push(`${it.item}（選項視窗沒開）`); continue; }
     await sleep(500);
 
