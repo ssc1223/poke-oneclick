@@ -17,6 +17,11 @@ const PWA_URL = typeof __PWA_URL__ !== 'undefined' ? __PWA_URL__ : '';
   const rec = startRecording((r, list) => {
     count.textContent = String(list.length);
     lastEl.textContent = `剛記住：${r.item} x${r.qty}`;
+  }, {
+    onReject: (r) => {
+      lastEl.textContent = `「${r.item}」沒有加入購物車，所以沒記下。`;
+      toast(`「${r.item}」好像沒有成功加入購物車（可能還有必選項沒選完），這份沒有記下。\n選好後再按一次「加入購物車」即可。`, 5000);
+    },
   });
   window.__pokeRec = rec;
 

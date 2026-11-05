@@ -1,6 +1,6 @@
 // 「一鍵點餐」核心：比對菜單 → 依序開品項、勾選項、按「加入購物車」。
 // 只模擬使用者點選，不呼叫任何 API，也絕對不會按「結帳」。
-import { norm, rows, rowState, tap, visible, findCard, snapshotMenu, snapshotGroups, ackButton, cta, setTextareaValue } from './dom.js';
+import { norm, rows, rowState, tap, visible, findCard, snapshotMenu, snapshotGroups, ackButton, cta, qsModal, numOf, setTextareaValue } from './dom.js';
 import { compareItems, compareOptions, resolveItems, resolveOptions } from '../shared/compare.js';
 
 export function makeTiming(scale = 1) {
@@ -108,13 +108,13 @@ export async function runRestore(set, { confirm, scale = 1, onProgress } = {}) {
       await applyGroup(g.el, want, sleep);
     }
 
-    const qe = document.querySelector('[data-testid^="attributeQuantityEditor-add"]');
+    const qe = qsModal('[data-testid^="attributeQuantityEditor-add"]');
     let g3 = 0;
-    while (qe && (parseInt((document.querySelector('[data-testid^="attributeQuantityEditor-edit"]') || {}).textContent, 10) || 1) < (it.qty || 1) && g3++ < 20) {
+    while (qe && (numOf(qsModal('[data-testid^="attributeQuantityEditor-edit"]')) || 1) < (it.qty || 1) && g3++ < 20) {
       tap(qe);
       await sleep(100);
     }
-    const c = document.querySelector('textarea[data-testid=comment]');
+    const c = qsModal('textarea[data-testid=comment]');
     if (c && it.comment) setTextareaValue(c, it.comment);
 
     await sleep(200);

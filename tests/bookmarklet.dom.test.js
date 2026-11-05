@@ -4,10 +4,13 @@ import { polyfillOffsetParent } from './setup-dom.js';
 import { mountMockShop } from '../mock/mock-shop.js';
 import { runRestore } from '../src/bookmarklet/restore-core.js';
 import { startRecording, saveLocalSet, loadLocalSets } from '../src/bookmarklet/save-core.js';
-import { snapshotMenu, KEY } from '../src/bookmarklet/dom.js';
+import { snapshotMenu, snapshotGroups, groups, cta, parseAddOn, parsePrice, KEY } from '../src/bookmarklet/dom.js';
 
 import cats from '../mock/menu-data.json';
 const FAST = 0.01;
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const REC_OPTS = { timeout: 200, interval: 10 };
+const openCard = (name) => [...document.querySelectorAll('[data-testid^="menuItems-item"]')].find((c) => c.querySelector('div[style*="web-text-md"]').textContent === name).click();
 
 const myPoke = {
   item: '創意自選波奇', qty: 1, comment: '醬少一點',
@@ -132,28 +135,30 @@ describe('一鍵點餐（模擬電小二頁面）', () => {
 describe('存餐點（模擬電小二頁面）', () => {
   it('攔截「加入購物車」記下品項、價格、選項、加價、數量、備註，並可還原', async () => {
     const shop = mountMockShop(document, cats, { announcement: false });
-    const rec = startRecording();
+    const rec = startRecording(null, REC_OPTS);
     // 模擬使用者手動點一次
     const card = [...document.querySelectorAll('[data-testid^="menuItems-item"]')].find((c) => c.textContent.includes('創意自選波奇'));
     card.click();
     const pick = (group, opt) => {
       const g = [...document.querySelectorAll('.attribute-category-title')].find((t) => t.textContent === group).parentElement.parentElement;
       const row = [...g.querySelectorAll('.px-3')].find((r) => r.querySelector('.attribute-option-title').textContent === opt);
-      (row.querySelector('input') || row.querySelector('[data-testid^=quantityCounter-plus]')).click();
+      (row.querySelector('input[type=radio],input[type=checkbox]') || row.querySelector('[data-testid^=quantityCounter-plus]')).click();
     };
     for (const [g, list] of Object.entries(myPoke.options)) for (const o of list) pick(g, o);
-    document.querySelector('[data-testid^=attributeQuantityEditor-add]').click();
-    const ta = document.querySelector('textarea[data-testid=comment]');
+    document.querySelector('#itemModal [data-testid^=attributeQuantityEditor-add]').click();
+    const ta = document.querySelector('#itemModal textarea[data-testid=comment]');
     ta.value = '醬少一點';
     ta.dispatchEvent(new Event('input', { bubbles: true }));
-    document.querySelector('[data-testid=attributeCTALayout]').click();
+    cta().click();
     expect(shop.cart).toHaveLength(1);
+    await wait(50);
     rec.stop();
     expect(rec.list).toHaveLength(1);
     const r = rec.list[0];
     expect(r).toMatchObject({ item: '創意自選波奇', qty: 2, comment: '醬少一點', price: 125 });
     expect(r.options['加點蛋白質']).toEqual(['挪威鮭魚(生)', '挪威鮭魚(生)']);
     expect(r.optPrices['加點蛋白質']['挪威鮭魚(生)']).toBe(65);
+    expect(r.optPrices['蛋白質自選']['鮪魚(生)']).toBe(35);
     expect(r.options['加點配菜']).toEqual([]);
 
     const set = saveLocalSet('小明的鮮魚波奇', rec.list);
@@ -167,8 +172,82 @@ describe('存餐點（模擬電小二頁面）', () => {
     expect(shop2.cart[0]).toEqual(shop.cart[0]);
   });
 
+  it('網站拒絕加入（必選項沒選完、視窗沒關）時不記錄並提示', async () => {
+    const shop = mountMockShop(document, cats, { announcement: false });
+    const added = [];
+    const rejected = [];
+    const rec = startRecording((r) => added.push(r), { ...REC_OPTS, onReject: (r) => rejected.push(r) });
+    openCard('創意自選波奇');
+    cta().click(); // 什麼都沒選就按
+    expect(shop.errors).toHaveLength(1);
+    await wait(REC_OPTS.timeout + 100);
+    expect(rec.list).toEqual([]);
+    expect(added).toEqual([]);
+    expect(rejected.map((r) => r.item)).toEqual(['創意自選波奇']);
+    // 視窗仍開著，關掉後改點麥茶，成功加入就會記下
+    document.querySelector('.modal.show .btn-close').click();
+    openCard('麥茶');
+    cta().click();
+    await wait(50);
+    rec.stop();
+    expect(rec.list.map((r) => [r.item, r.price])).toEqual([['麥茶', 20]]);
+    expect(added).toHaveLength(1);
+  });
+
   it('讀得懂 seed 舊版 localStorage 格式', () => {
     localStorage.setItem(KEY, JSON.stringify({ savedAt: '2026-01-01T00:00:00Z', items: [{ item: '麥茶', qty: 1, options: {} }] }));
     expect(loadLocalSets()[0].items[0].item).toBe('麥茶');
+  });
+});
+
+describe('真實網站 DOM 格式解析', () => {
+  it('卡片價格與大卡分開的 div：麥茶是 20 而不是 203', () => {
+    mountMockShop(document, cats, { announcement: false });
+    const card = [...document.querySelectorAll('[data-testid^="menuItems-item"]')].find((c) => c.textContent.trim().startsWith('麥茶'));
+    expect(card.textContent).toContain('$203.7 大卡'); // 確認 mock 真的黏在一起
+    const tea = snapshotMenu().find((m) => m.name === '麥茶');
+    expect(tea.price).toBe(20);
+    expect(snapshotMenu().find((m) => m.name === '創意自選波奇').price).toBe(125);
+  });
+
+  it('選項加價「$65」格式（後面緊接大卡）解析為 65；沒加價的是 0', () => {
+    mountMockShop(document, cats, { announcement: false });
+    openCard('創意自選波奇');
+    const gs = snapshotGroups();
+    const add = gs.find((g) => g.title === '加點蛋白質');
+    expect(add.options.find((o) => o.name === '挪威鮭魚(生)').price).toBe(65);
+    expect(gs.find((g) => g.title === '蛋白質自選').options.find((o) => o.name === '鮪魚(生)').price).toBe(35);
+    expect(gs.find((g) => g.title === '加點配料').options.find((o) => o.name === '海苔').price).toBe(5);
+    expect(gs.find((g) => g.title === '基底選一').options.every((o) => o.price === 0)).toBe(true);
+  });
+
+  it('保留舊版「+$45」加價格式', () => {
+    mountMockShop(document, cats, { announcement: false, addOnFormat: 'plus' });
+    openCard('創意自選波奇');
+    const add = snapshotGroups().find((g) => g.title === '加點蛋白質');
+    expect(add.options.find((o) => o.name === '挪威鮭魚(生)').price).toBe(65);
+  });
+
+  it('parseAddOn / parsePrice 各種格式', () => {
+    expect(parseAddOn('$65')).toBe(65);
+    expect(parseAddOn('+45')).toBe(45);
+    expect(parseAddOn('+$45')).toBe(45);
+    expect(parseAddOn('(+45)')).toBe(45);
+    expect(parseAddOn('120.5 大卡')).toBe(0);
+    expect(parseAddOn('3.7 大卡\n$35')).toBe(35);
+    expect(parsePrice('NT$1,200')).toBe(1200);
+  });
+
+  it('只取目前顯示中的 .modal.show：忽略隱藏的 CTA 與隱藏視窗', () => {
+    mountMockShop(document, cats, { announcement: false });
+    expect(document.querySelectorAll('[data-testid=attributeCTALayout]').length).toBeGreaterThanOrEqual(3);
+    expect(document.querySelectorAll('.modal').length).toBeGreaterThanOrEqual(2);
+    expect(cta()).toBeNull(); // 沒有打開的視窗時不會抓到隱藏的 CTA
+    expect(groups()).toEqual([]);
+    openCard('創意自選波奇');
+    expect(cta().closest('.modal.show')).not.toBeNull();
+    const titles = groups().map((g) => g.title);
+    expect(titles).toContain('加點蛋白質');
+    expect(titles).not.toContain('隱藏群組');
   });
 });

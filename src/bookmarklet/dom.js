@@ -6,14 +6,46 @@ export const KEY = 'cashierOneClick.v1';
 
 export const SOLD_OUT_RE = /已售完|售完|完售|售罄|賣完/;
 
-export const groups = () => {
-  const out = [];
-  document.querySelectorAll('.attribute-category-title').forEach((t) => {
-    const g = t.parentElement.parentElement;
-    out.push({ title: norm(t.textContent), el: g });
-  });
-  return out;
+export const visible = (el) => !!(el && el.offsetParent);
+// .modal 本身是 position:fixed，offsetParent 永遠是 null，所以另外看 getClientRects
+const shown = (el) => visible(el) || !!(el && el.getClientRects && el.getClientRects().length);
+
+const CTA_SEL = '[data-testid=attributeCTALayout]';
+
+/**
+ * 目前顯示中的選項視窗。電小二頁面上同時有很多 .modal，
+ * 只有 .modal.show 是目前打開的那個；有多個時優先選看得見且含「加入購物車」的。
+ */
+export const activeModal = () => {
+  const ms = [].slice.call(document.querySelectorAll('.modal.show'));
+  return ms.find((m) => [].slice.call(m.querySelectorAll(CTA_SEL)).some(visible))
+    || ms.find(shown)
+    || null;
 };
+
+/** 在目前視窗範圍內找元素；沒有 .modal.show 時退回整頁但只取看得見的 */
+export const qsModal = (sel) => {
+  const m = activeModal();
+  if (m) return m.querySelector(sel);
+  return [].slice.call(document.querySelectorAll(sel)).find(visible) || null;
+};
+const qsaModal = (sel) => {
+  const m = activeModal();
+  if (m) return [].slice.call(m.querySelectorAll(sel));
+  return [].slice.call(document.querySelectorAll(sel)).filter(visible);
+};
+
+/** 讀數字：<span>3</span> 或 <input type=number value=3> 都可以 */
+export const numOf = (el) => {
+  if (!el) return 0;
+  const v = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ? el.value : el.textContent;
+  return parseInt(v, 10) || 0;
+};
+
+export const groups = () => qsaModal('.attribute-category-title').map((t) => ({
+  title: norm(t.textContent),
+  el: t.parentElement.parentElement,
+}));
 
 export const rows = (g) => {
   const out = [];
@@ -29,7 +61,7 @@ export const rowState = (r) => {
   if (i) return { input: i, n: i.checked ? 1 : 0 };
   const e = r.querySelector('[data-testid^="quantityCounter-edit"]');
   return {
-    n: e ? parseInt(e.textContent, 10) || 0 : 0,
+    n: numOf(e),
     plus: r.querySelector('[data-testid^="quantityCounter-plus"]'),
     minus: () => r.querySelector('[data-testid^="quantityCounter-minus"]'),
   };
@@ -41,18 +73,67 @@ export const tap = (el) => {
   else el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
 };
 
-export const visible = (el) => !!(el && el.offsetParent);
-
 /** 從「$189」「NT$1,200」之類文字抓出價格 */
 export const parsePrice = (text) => {
   const m = String(text || '').match(/\$\s*([\d,]+)/);
   return m ? parseInt(m[1].replace(/,/g, ''), 10) : undefined;
 };
 
-/** 選項列的加價：「+45」「+$45」「(+45)」 */
+const KCAL_RE = /[\d.,]+\s*(?:大卡|kcal)/gi;
+
+/**
+ * 選項列的加價：真實網站是獨立的「$65」，mock／舊版是「+45」「+$45」「(+45)」。
+ * 會先去掉「3.7 大卡」之類的熱量數字。
+ */
 export const parseAddOn = (text) => {
-  const m = String(text || '').match(/\+\s*\$?\s*([\d,]+)/);
+  const t = String(text || '').replace(KCAL_RE, ' ');
+  const m = t.match(/\+\s*\$?\s*([\d,]+)/) || t.match(/\$\s*([\d,]+)/);
   return m ? parseInt(m[1].replace(/,/g, ''), 10) : 0;
+};
+
+/** 元素底下所有「沒有子元素」的節點文字（略過 skip 選到的元素及其內容） */
+const leafTexts = (root, skip) => {
+  const out = [];
+  const walk = (el) => {
+    if (skip && el !== root && el.matches && el.matches(skip)) return;
+    if (!el.children.length) {
+      const t = el.textContent.trim();
+      if (t) out.push(t);
+      return;
+    }
+    // 直接夾在元素之間的文字節點也收進來
+    el.childNodes.forEach((n) => {
+      if (n.nodeType === 1) walk(n);
+      else if (n.nodeType === 3 && n.textContent.trim()) out.push(n.textContent.trim());
+    });
+  };
+  walk(root);
+  return out;
+};
+
+const PRICE_ONLY = /^(?:NT)?\$\s*[\d,]+$/;
+const ADDON_ONLY = /^\(?\s*(?:\+\s*\$?|\$)\s*[\d,]+\s*\)?$/;
+const NAME_SEL = 'div[style*="web-text-md"]';
+
+/**
+ * 品項卡片的價格：讀卡片裡「只含 $數字」的那個元素（真實網站是 div.fw-bold），
+ * 不用整張卡片的 textContent，否則「$20」「3.7 大卡」會黏成「$203.7 大卡」。
+ */
+export const cardPrice = (m) => {
+  const bold = [].slice.call(m.querySelectorAll('.fw-bold, .fw-bolder')).find((e) => PRICE_ONLY.test(e.textContent.trim()));
+  if (bold) return parsePrice(bold.textContent);
+  const leaves = leafTexts(m, NAME_SEL);
+  const only = leaves.find((t) => PRICE_ONLY.test(t));
+  return parsePrice(only || leaves.filter((t) => !/大卡|kcal/i.test(t)).join('\n'));
+};
+
+const ROW_SKIP = '.attribute-option-title, input, button, [data-testid^="quantityCounter"]';
+
+/** 選項列的加價：讀列中「只含 $65 / +$45」的元素，忽略名稱、數量、熱量 */
+export const rowAddOn = (rowEl) => {
+  const leaves = leafTexts(rowEl, ROW_SKIP).filter((t) => !/大卡|kcal/i.test(t));
+  const only = leaves.find((t) => ADDON_ONLY.test(t));
+  return parseAddOn(only || leaves.join('\n'));
 };
 
 export const cards = () => [].slice.call(document.querySelectorAll('[data-testid^="menuItems-item"]'));
@@ -78,7 +159,7 @@ export function snapshotMenu() {
     if (!name || seen.has(name)) return;
     seen.add(name);
     const rest = m.textContent.replace(name, '');
-    out.push({ name, price: parsePrice(rest), soldOut: SOLD_OUT_RE.test(rest) || isDisabled(m) });
+    out.push({ name, price: cardPrice(m), soldOut: SOLD_OUT_RE.test(rest) || isDisabled(m) });
   });
   return out;
 }
@@ -90,15 +171,20 @@ export function snapshotGroups() {
     el: g.el,
     options: rows(g.el).map((r) => {
       const rest = r.el.textContent.replace(r.title, '');
-      const input = r.el.querySelector('input');
+      const input = r.el.querySelector('input[type=radio],input[type=checkbox]');
       const soldOut = SOLD_OUT_RE.test(rest) || !!(input && input.disabled && !input.checked);
-      return { name: r.title, price: parseAddOn(rest), soldOut, el: r.el };
+      return { name: r.title, price: rowAddOn(r.el), soldOut, el: r.el };
     }),
   }));
 }
 
 export const ackButton = () => [].slice.call(document.querySelectorAll('button')).find((b) => /我知道了/.test(b.textContent) && b.offsetParent);
-export const cta = () => document.querySelector('[data-testid=attributeCTALayout]');
+/** 目前視窗中看得見的「加入購物車」；頁面上可能同時有多個隱藏的 CTA */
+export const cta = () => {
+  const m = activeModal();
+  const list = [].slice.call((m || document).querySelectorAll(CTA_SEL));
+  return list.find(visible) || null;
+};
 
 export const setTextareaValue = (c, v) => {
   const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;

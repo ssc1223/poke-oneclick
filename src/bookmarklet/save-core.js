@@ -1,10 +1,10 @@
-// 「存餐點」核心：攔截「加入購物車」時記下目前選項視窗的內容
-import { norm, groups, rows, rowState, cardName, parsePrice, parseAddOn, KEY } from './dom.js';
+// 「存餐點」核心：攔截「加入購物車」，等網站真的把選項視窗關掉（＝成功加入）才記下
+import { norm, groups, rows, rowState, cardName, cardPrice, rowAddOn, numOf, qsModal, activeModal, visible, KEY } from './dom.js';
 import { normalizePayload, normalizeSet, newId } from '../shared/codec.js';
 
 /** 讀取目前打開的選項視窗，產生一份餐點紀錄 */
 export function snapshotItem(lastItem) {
-  const title = norm((document.querySelector('.modal.show .modal-title, .modal.show h5, .modal.show .modal-header') || {}).textContent);
+  const title = norm((qsModal('.modal-title, h5, .modal-header') || {}).textContent);
   const options = {};
   const optPrices = {};
   groups().forEach((g) => {
@@ -12,18 +12,15 @@ export function snapshotItem(lastItem) {
     rows(g.el).forEach((r) => {
       const n = rowState(r.el).n;
       for (let k = 0; k < n; k++) sel.push(r.title);
-      if (n) {
-        const p = parseAddOn(r.el.textContent.replace(r.title, ''));
-        (optPrices[g.title] = optPrices[g.title] || {})[r.title] = p;
-      }
+      if (n) (optPrices[g.title] = optPrices[g.title] || {})[r.title] = rowAddOn(r.el);
     });
     options[g.title] = sel;
   });
-  const q = document.querySelector('[data-testid^="attributeQuantityEditor-edit"]');
-  const c = document.querySelector('textarea[data-testid=comment]');
+  const q = qsModal('[data-testid^="attributeQuantityEditor-edit"]');
+  const c = qsModal('textarea[data-testid=comment]');
   const rec = {
     item: (lastItem && lastItem.name) || title,
-    qty: q ? parseInt(q.textContent, 10) || 1 : 1,
+    qty: numOf(q) || 1,
     comment: c ? c.value : '',
     options,
   };
@@ -33,27 +30,51 @@ export function snapshotItem(lastItem) {
 }
 
 /**
- * 開始記錄：回傳 { list, stop }。onAdd(rec, list) 每記住一份就會被呼叫。
+ * 開始記錄：回傳 { list, stop }。
+ * onAdd(rec, list)：網站確實加入購物車（選項視窗關閉）後呼叫。
+ * opts.onReject(rec)：按了「加入購物車」但視窗一直沒關（例如必選項沒選完）時呼叫，這份不會被記下。
+ * opts.timeout / opts.interval：等待視窗關閉的時間（毫秒）。
  */
-export function startRecording(onAdd) {
+export function startRecording(onAdd, { onReject, timeout = 4000, interval = 100 } = {}) {
   const list = [];
   let last = null;
+  let pending = null; // 同時只等一份；再按一次就以新的那次為準
+
+  const cancelPending = () => { if (pending) { clearTimeout(pending.timer); pending = null; } };
+
   const handler = (e) => {
     const t = e.target;
     if (!t || !t.closest) return;
     const m = t.closest('[data-testid^="menuItems-item"]');
-    if (m) last = { name: cardName(m), price: parsePrice(m.textContent.replace(cardName(m), '')) };
+    if (m) last = { name: cardName(m), price: cardPrice(m) };
     const b = t.closest('[data-testid=attributeCTALayout]');
-    if (b && /加入購物車/.test(b.textContent)) {
-      const rec = snapshotItem(last);
-      if (rec.item) {
+    if (!b || !/加入購物車/.test(b.textContent) || !visible(b)) return;
+    const modal = activeModal();
+    if (modal && !modal.contains(b)) return; // 不是目前視窗裡的按鈕
+    // capture 階段先拍下內容（網站處理完點擊後會清掉視窗），但要等確認成功才記入
+    const rec = snapshotItem(last);
+    if (!rec.item) return;
+    cancelPending();
+    const job = { rec, start: Date.now() };
+    const isClosed = () => !b.isConnected || !visible(b) || (modal && !modal.classList.contains('show'));
+    const check = () => {
+      if (pending !== job) return;
+      if (isClosed()) {
+        pending = null;
         list.push(rec);
         onAdd && onAdd(rec, list);
+      } else if (Date.now() - job.start >= timeout) {
+        pending = null;
+        onReject && onReject(rec);
+      } else {
+        job.timer = setTimeout(check, interval);
       }
-    }
+    };
+    pending = job;
+    job.timer = setTimeout(check, interval);
   };
   document.addEventListener('click', handler, true);
-  return { list, stop: () => document.removeEventListener('click', handler, true) };
+  return { list, stop: () => { cancelPending(); document.removeEventListener('click', handler, true); } };
 }
 
 /** 讀取本站 localStorage 中的組合（相容 seed 舊格式） */
