@@ -1,4 +1,4 @@
-// 把 src/bookmarklet/{save,restore}.js 打包成 javascript: 書籤
+// 把 src/bookmarklet/oneclick.js 打包成單一 javascript: 書籤
 // （對應 seed/build.py 的做法：組合 → 壓縮 → URL 編碼）
 import { build } from 'esbuild';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -18,7 +18,7 @@ export function toBookmarklet(code) {
 
 const out = {};
 const sizes = {};
-for (const name of ['save', 'restore']) {
+for (const name of ['oneclick']) {
   const r = await build({
     entryPoints: [join(root, 'src/bookmarklet', name + '.js')],
     bundle: true,
