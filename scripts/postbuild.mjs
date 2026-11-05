@@ -8,8 +8,11 @@ const root = join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const dist = join(root, 'dist');
 
 const bm = JSON.parse(readFileSync(join(root, 'src/generated/bookmarklets.json'), 'utf8'));
+const fullJs = readFileSync(join(root, 'src/generated/oneclick.js'));
 mkdirSync(join(dist, 'bookmarklets'), { recursive: true });
 writeFileSync(join(dist, 'bookmarklets/oneclick.txt'), bm.oneclick);
+// 完整程式靜態檔（短書籤會從此載入）；vite 也會從 public/ 複製一份，這裡再寫一次確保存在
+writeFileSync(join(dist, 'bookmarklets/oneclick.js'), fullJs);
 
 const files = [];
 const walk = (d) => {

@@ -102,7 +102,7 @@ function quickOrder(set) {
   if (!w) { goOrder(set); return; } // 被擋下彈出視窗：改顯示「開啟點餐頁」按鈕
   try { w.opener = null; } catch { /* 忽略 */ }
   copyText(token); // 備用：點餐頁網址的資料遺失時，書籤可改用剪貼簿
-  toast(`已開啟點餐頁：在點餐頁按書籤「一鍵點餐」就會自動點「${set.name}」`);
+  toast(`已開啟點餐頁：在網址列打書籤名稱（例如 poke）再點書籤，就會自動點「${set.name}」`);
 }
 
 /** 第一次使用：請使用者貼上點餐網址，存起來後直接開啟 */
@@ -133,12 +133,12 @@ async function goOrder(set) {
     <h2>去點餐：${esc(set.name)}</h2>
     ${copied ? '<p class="ok">✓ 已把餐點資料複製到剪貼簿</p>' : `<p class="err">無法自動複製，請手動複製下面的資料：</p><textarea class="inp" readonly rows="3">${esc(token)}</textarea>`}
     <ol class="steps-sm">
-      <li>${hasUrl ? '按下方「開啟點餐頁」' : '用 <b>Chrome／Safari</b> 打開這次的電小二點餐網址（不要用 LINE 內建瀏覽器）'}</li>
-      <li>點網址列，輸入「一鍵點餐」，點那個書籤（會自動讀取剪貼簿）</li>
+      <li>${hasUrl ? '按下方「開啟點餐頁」' : '用 <b>Brave／Chrome／Safari</b> 打開這次的電小二點餐網址（掃 QR 時選 Brave；不要用 LINE 內建瀏覽器）'}</li>
+      <li>點網址列，輸入書籤名稱（例如 poke），點那個書籤（會自動讀取剪貼簿）</li>
       <li>等它自動加入購物車，<b>自己檢查後再結帳</b></li>
     </ol>
     ${hasUrl ? `<a class="btn pri block" href="${esc(buildOrderUrl(orderUrl, token))}" target="_blank" rel="noopener">開啟點餐頁</a>` : '<p class="mut">小技巧：到「設定」填入點餐網址，下次就能一鍵開啟。</p>'}
-    <p class="mut">若點餐頁開在 App 內的小視窗（無法用書籤），請點選單裡的「在 Chrome 中開啟」，或改用 Safari 開啟。</p>`);
+    <p class="mut">若點餐頁開在 App 內的小視窗（無法用書籤），請點選單裡的「在瀏覽器中開啟」，或改用 Brave／Safari 開啟。</p>`);
 }
 
 async function renameSet(set) {
@@ -307,7 +307,7 @@ app.addEventListener('click', async (e) => {
   if (b.dataset.copy) {
     const ok = await copyText(bookmarklets.oneclick);
     b.textContent = ok ? '已複製 ✓ 接著做步驟 2' : '複製失敗，請再按一次';
-    toast(ok ? '已複製書籤程式碼！接著照步驟 2 新增書籤' : '複製失敗，請改用電腦拖曳或重試');
+    toast(ok ? `已複製短書籤（${bookmarklets.oneclick.length} 字）！接著照步驟 2 新增書籤` : '複製失敗，請改用電腦拖曳或重試');
     return;
   }
   const set = b.dataset.id ? findSet(b.dataset.id) : null;
