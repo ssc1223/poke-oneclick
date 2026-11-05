@@ -19,10 +19,12 @@ const url = (t, extra = '') => `<span class="ph-url">${t}</span>${extra}`;
 const hl = (x) => `<span class="ph-hl">${x}</span>`;
 
 export function installHtml(bm) {
+  const len = bm.oneclick.length;
   return `
 <section class="card">
-  <h2>只要設定一個書籤</h2>
-  <p>書籤「一鍵點餐」會自己判斷要做什麼：</p>
+  <h2>只要設定一個短書籤</h2>
+  <p>書籤「一鍵點餐」很短（約 ${len} 字），在點餐頁執行時會從本站載入最新程式，<b>以後更新功能不用重裝書籤</b>。</p>
+  <p>按下時會自己判斷要做什麼：</p>
   <ul class="flow">
     <li><b>存餐點</b>：在點餐頁按書籤 → 照平常「加入購物車」→ 再按一次書籤，餐點就自動存進這個 App。</li>
     <li><b>點餐</b>：在 App 點一下餐點卡片開啟點餐頁 → 按書籤，就會自動加入購物車（菜單有變動會先提示你）。</li>
@@ -31,9 +33,9 @@ export function installHtml(bm) {
 </section>
 
 <section class="card" id="code">
-  <h2>步驟 1：複製書籤程式碼</h2>
+  <h2>步驟 1：複製短書籤</h2>
   <button class="btn pri block" data-copy="oneclick">一鍵複製書籤程式碼</button>
-  <p class="mut">（${bm.oneclick.length.toLocaleString()} 字，開頭是 <code>javascript:</code>）</p>
+  <p class="mut">（${len.toLocaleString()} 字，開頭是 <code>javascript:</code>，可貼進手機書籤網址欄）</p>
   <details>
     <summary>用電腦？直接把這個連結拖到書籤列</summary>
     <p><a class="drag" href="#">一鍵點餐</a></p>
@@ -42,31 +44,36 @@ export function installHtml(bm) {
 
 <section class="card" id="add">
   <h2>步驟 2：新增書籤並貼上</h2>
-  <p>把這一頁加入書籤，再編輯它：名稱改成 <code>一鍵點餐</code>，<b>網址整個刪掉後貼上</b>剛剛複製的程式碼，儲存。</p>
+  <p>把這一頁加入書籤，再編輯它：名稱改成簡短好打的（例如 <code>poke</code> 或 <code>一鍵點餐</code>），<b>網址整個刪掉後貼上</b>剛剛複製的短程式碼，儲存。</p>
   <ul>
-    <li><b>Android Chrome</b>：${ic.dots} → ${ic.star} 加入書籤 → ${ic.dots}「書籤」→ 長按該書籤 →「編輯」。</li>
+    <li><b>Android Brave／Chrome</b>：${ic.dots} → ${ic.star} 加入書籤 → ${ic.dots}「書籤」→ 長按該書籤 →「編輯」。</li>
     <li><b>iPhone Safari</b>：分享 ${ic.share} →「加入書籤」→ ${ic.book} →「編輯」→ 點該書籤。</li>
   </ul>
-  ${phone(url('編輯書籤'), `<div class="ph-form"><label>名稱</label><div class="ph-input">一鍵點餐</div><label>網址</label><div class="ph-input">${hl('javascript:(()=>{…')}</div></div>`)}
+  ${phone(url('編輯書籤'), `<div class="ph-form"><label>名稱</label><div class="ph-input">poke</div><label>網址</label><div class="ph-input">${hl('javascript:(function(){…}')}</div></div>`)}
 </section>
 
 <section class="card" id="use">
-  <h2>步驟 3：在點餐頁執行書籤</h2>
-  <p>在電小二點餐頁點<b>網址列</b>，輸入 <code>一鍵點餐</code>，點建議清單中的書籤（Android 是有星號 ${ic.star} 的那項；iPhone 也可以從 ${ic.book} 書籤清單點）。</p>
-  ${phone(url(hl('一鍵點餐')), `<div class="ph-list"><div>${hl(ic.star + ' 一鍵點餐　javascript:…')}</div><div>🔍 一鍵點餐 - Google 搜尋</div></div>`)}
+  <h2>步驟 3：在點餐頁執行書籤（手機）</h2>
+  <ol class="flow">
+    <li>用 <b>Brave</b>（或 Chrome／Safari）打開電小二點餐頁。掃 QR Code 時請選 <b>Brave 開啟</b>，不要用 LINE 內建瀏覽器。</li>
+    <li>點上方的<b>網址列</b>，打書籤名稱（例如 <code>poke</code>）。</li>
+    <li>在建議清單裡點那個書籤（Android 是有星號 ${ic.star} 的那項；iPhone 也可從 ${ic.book} 書籤清單點）。</li>
+  </ol>
+  ${phone(url(hl('poke')), `<div class="ph-list"><div>${hl(ic.star + ' poke　javascript:…')}</div><div>🔍 poke - Google 搜尋</div></div>`)}
+  <p class="note">書籤會連上網路載入最新程式；若提示「載入一鍵點餐失敗」，請確認網路後再試一次。</p>
 </section>
 
 <details class="card" id="line">
   <summary><b>⚠ 在 LINE 裡打開點餐網址？</b></summary>
-  <p>LINE 的內建瀏覽器不能使用書籤，請改用 Chrome／Safari 開啟：Android 點右上 ${ic.dots} →「使用預設瀏覽器開啟」；iPhone 點 ${ic.share} 或「⋯」→「在 Safari 中開啟」。</p>
+  <p>LINE 的內建瀏覽器不能使用書籤。請改用 Brave／Chrome／Safari 開啟：Android 點右上 ${ic.dots} →「使用預設瀏覽器開啟」；iPhone 點 ${ic.share} 或「⋯」→「在 Safari 中開啟」。掃店家 QR Code 時也請選 Brave 開啟。</p>
 </details>
 
 <details class="card" id="pwa">
   <summary><b>把這個 App 加到主畫面</b></summary>
   <ul>
     <li><b>iPhone Safari</b>：分享 ${ic.share} →「加入主畫面」${ic.plus}。</li>
-    <li><b>Android Chrome</b>：${ic.dots} →「加到主畫面」或「安裝應用程式」。</li>
+    <li><b>Android Brave／Chrome</b>：${ic.dots} →「加到主畫面」或「安裝應用程式」。</li>
   </ul>
-  <p class="note">從主畫面開 App 時，點餐頁可能會開在 App 內的小視窗，那裡不能用書籤。請點選單的「在 Chrome 中開啟」，iPhone 請改用 Safari 開啟。</p>
+  <p class="note">從主畫面開 App 時，點餐頁可能會開在 App 內的小視窗，那裡不能用書籤。請點選單的「在瀏覽器中開啟」，或改用 Brave／Safari 開啟點餐頁後再按書籤。</p>
 </details>`;
 }

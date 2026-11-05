@@ -42,7 +42,6 @@
 <script type="module">
   import { mountMockShop } from './mock-shop.js';
   import cats from './menu-data.json';
-  import bm from '../src/generated/bookmarklets.json';
   const scen = {
     '': {},
     rename: { rename: { 麥茶: '冰麥茶' } },
@@ -59,8 +58,15 @@
   const state = mountMockShop(document, cats, scen[q] || {});
   document.body.prepend(dev);
   window.__mockState = state;
-  const run = (code) => (0, eval)(decodeURIComponent(code.replace(/^javascript:/, '')));
-  document.getElementById('bmRun').onclick = () => run(bm.oneclick);
+  // 與正式短書籤相同：載入完整靜態程式（dev 時由 public/bookmarklets 提供）
+  const base = import.meta.env.BASE_URL || '/poke-oneclick/';
+  document.getElementById('bmRun').onclick = () => {
+    const s = document.createElement('script');
+    s.charset = 'utf-8';
+    s.src = `${base}bookmarklets/oneclick.js?t=${Date.now()}`;
+    s.onerror = () => alert('載入一鍵點餐失敗，請確認已執行 npm run bookmarklets');
+    document.documentElement.appendChild(s);
+  };
   setInterval(() => { document.getElementById('cartView').textContent = '🛒 ' + state.cart.map((c) => c.item + 'x' + c.qty).join('、'); }, 500);
 </script>
 </body>
