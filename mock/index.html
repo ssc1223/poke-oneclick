@@ -35,8 +35,7 @@
     <option value="price">招牌奶香芥末鮭魚飯漲價</option>
     <option value="option">配菜「黃瓜」改名「小黃瓜」</option>
   </select>
-  <button id="bmSave">執行「存餐點」</button>
-  <button id="bmRestore">執行「一鍵點餐」</button>
+  <button id="bmRun">執行書籤「一鍵點餐」</button>
   <span id="cartView"></span>
 </div>
 <div id="shop"></div>
@@ -61,8 +60,7 @@
   document.body.prepend(dev);
   window.__mockState = state;
   const run = (code) => (0, eval)(decodeURIComponent(code.replace(/^javascript:/, '')));
-  document.getElementById('bmSave').onclick = () => run(bm.save);
-  document.getElementById('bmRestore').onclick = () => run(bm.restore);
+  document.getElementById('bmRun').onclick = () => run(bm.oneclick);
   setInterval(() => { document.getElementById('cartView').textContent = '🛒 ' + state.cart.map((c) => c.item + 'x' + c.qty).join('、'); }, 500);
 </script>
 </body>

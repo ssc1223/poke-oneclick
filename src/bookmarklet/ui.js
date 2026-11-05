@@ -21,6 +21,8 @@ select,input,textarea{width:100%;font-size:16px;padding:8px;border:1px solid var
 textarea{min-height:90px}
 .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 button{flex:1 1 auto;min-height:44px;font-size:16px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--fg);padding:8px 12px;cursor:pointer}
+a.btnlink{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:44px;font-size:16px;border-radius:10px;padding:8px 12px;text-decoration:none;background:var(--acc);color:#fff;font-weight:600}
+summary{cursor:pointer;margin-top:10px}
 button.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
 button.list{display:block;width:100%;text-align:left;margin:6px 0}
 .row{display:flex;align-items:center;gap:8px}

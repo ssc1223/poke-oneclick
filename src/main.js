@@ -54,7 +54,9 @@ function dialog(html, buttons = [{ label: '關閉', value: null }], onMount) {
       const b = e.target.closest('button[data-i]');
       if (b) {
         const btn = buttons[+b.dataset.i];
-        done(typeof btn.value === 'function' ? btn.value(wrap) : btn.value);
+        const v = typeof btn.value === 'function' ? btn.value(wrap) : btn.value;
+        if (v === undefined && btn.keep) return; // 驗證失敗時不關閉
+        done(v);
       }
     });
     document.body.appendChild(wrap);
@@ -88,6 +90,40 @@ async function share(sets, title) {
   else dialog(`<h2>分享連結</h2><textarea class="inp" readonly rows="5">${esc(url)}</textarea>`);
 }
 
+/**
+ * 點餐：點一下就開點餐頁（網址帶 #coc=），在點餐頁按書籤就會自動還原。
+ * 必須在點擊事件中同步呼叫 window.open，避免被擋下彈出視窗。
+ */
+function quickOrder(set) {
+  const orderUrl = state.settings.orderUrl;
+  if (!isValidOrderUrl(orderUrl)) { askOrderUrl(set); return; }
+  const token = encodeSets([set]);
+  const w = window.open(buildOrderUrl(orderUrl, token), '_blank');
+  if (!w) { goOrder(set); return; } // 被擋下彈出視窗：改顯示「開啟點餐頁」按鈕
+  try { w.opener = null; } catch { /* 忽略 */ }
+  copyText(token); // 備用：點餐頁網址的資料遺失時，書籤可改用剪貼簿
+  toast(`已開啟點餐頁：在點餐頁按書籤「一鍵點餐」就會自動點「${set.name}」`);
+}
+
+/** 第一次使用：請使用者貼上點餐網址，存起來後直接開啟 */
+async function askOrderUrl(set) {
+  await dialog(`<h2>貼上點餐網址</h2>
+    <p class="mut">第一次使用請貼上電小二的點餐網址（https://shop.cashier.tw/online/menu/order/…），只會存在這台手機，之後點餐點卡片就會直接開啟。</p>
+    <input class="inp" type="url" inputmode="url" placeholder="https://shop.cashier.tw/online/menu/order/…">
+    <p class="err" hidden>請貼上 https://…cashier.tw/ 開頭的網址</p>`,
+  [{ label: '取消', value: null }, {
+    label: '儲存並開啟點餐頁', cls: 'pri', keep: true,
+    value: (w) => {
+      const v = w.querySelector('input').value.trim();
+      if (!isValidOrderUrl(v)) { w.querySelector('.err').hidden = false; return undefined; }
+      state.settings.orderUrl = v;
+      persist();
+      quickOrder(set);
+      return true;
+    },
+  }]);
+}
+
 async function goOrder(set) {
   const token = encodeSets([set]);
   const copied = await copyText(token);
@@ -98,7 +134,7 @@ async function goOrder(set) {
     ${copied ? '<p class="ok">✓ 已把餐點資料複製到剪貼簿</p>' : `<p class="err">無法自動複製，請手動複製下面的資料：</p><textarea class="inp" readonly rows="3">${esc(token)}</textarea>`}
     <ol class="steps-sm">
       <li>${hasUrl ? '按下方「開啟點餐頁」' : '用 <b>Chrome／Safari</b> 打開這次的電小二點餐網址（不要用 LINE 內建瀏覽器）'}</li>
-      <li>點網址列，輸入「一鍵點餐」，點那個書籤</li>
+      <li>點網址列，輸入「一鍵點餐」，點那個書籤（會自動讀取剪貼簿）</li>
       <li>等它自動加入購物車，<b>自己檢查後再結帳</b></li>
     </ol>
     ${hasUrl ? `<a class="btn pri block" href="${esc(buildOrderUrl(orderUrl, token))}" target="_blank" rel="noopener">開啟點餐頁</a>` : '<p class="mut">小技巧：到「設定」填入點餐網址，下次就能一鍵開啟。</p>'}
@@ -133,19 +169,19 @@ function viewHome() {
     return `<section class="card empty">
       <div class="big">🥗</div>
       <h2>還沒有常點組合</h2>
-      <p>先到「教學」安裝兩個書籤，用「存餐點」在電小二點一次餐，再把紀錄匯入這裡。</p>
+      <p>先到「教學」設定一個書籤。在電小二點餐頁按書籤、照平常加入購物車，再按一次書籤，餐點就會自動存到這裡。</p>
       <div class="row center"><a class="btn pri" href="#/install">看安裝教學</a><a class="btn" href="#/import">貼上資料匯入</a></div>
     </section>`;
   }
-  return `<h1 class="ttl">常點組合</h1>${state.sets.map((s) => `
+  return `<h1 class="ttl">常點組合</h1>
+  <p class="mut">點一下餐點就會開啟點餐頁，再按書籤「一鍵點餐」自動加入購物車；菜單有變動會先提示。</p>${state.sets.map((s) => `
     <section class="card set">
-      <a class="set-main" href="#/set/${esc(s.id)}">
-        <h2>${esc(s.name)}</h2>
+      <button type="button" class="set-main" data-act="quick" data-id="${esc(s.id)}" aria-label="點餐：${esc(s.name)}">
+        <h2>${esc(s.name)} <span class="go">點餐 ›</span></h2>
         <p class="mut">${s.items.length} 份｜${esc(summarizeItems(s.items))}</p>
-      </a>
+      </button>
       <div class="row">
-        <button class="btn pri grow" data-act="order" data-id="${esc(s.id)}">去點餐</button>
-        <a class="btn" href="#/set/${esc(s.id)}">檢視</a>
+        <a class="btn grow" href="#/set/${esc(s.id)}">檢視</a>
         <button class="btn" data-act="share" data-id="${esc(s.id)}" aria-label="分享">分享</button>
       </div>
     </section>`).join('')}`;
@@ -176,7 +212,8 @@ function viewSet(id) {
     </section>`;
   }).join('')}
   <div class="actions">
-    <button class="btn pri block" data-act="order" data-id="${esc(s.id)}">去點餐</button>
+    <button class="btn pri block" data-act="quick" data-id="${esc(s.id)}">去點餐</button>
+    <button class="btn block" data-act="order" data-id="${esc(s.id)}">用剪貼簿點餐（沒有點餐網址時）</button>
     <div class="row">
       <button class="btn grow" data-act="rename" data-id="${esc(s.id)}">改名</button>
       <button class="btn grow" data-act="share" data-id="${esc(s.id)}">分享連結</button>
@@ -202,7 +239,7 @@ function viewImport() {
   return `<h1 class="ttl">匯入餐點</h1>
   ${preview}
   <section class="card">
-    <p>貼上「存餐點」書籤或朋友給你的分享連結／資料：</p>
+    <p>貼上朋友給你的分享連結或資料（用書籤存的餐點會自動匯入，不用來這裡）：</p>
     <textarea id="importText" class="inp" rows="5" placeholder="https://…#import=… 或資料字串">${esc(text)}</textarea>
     <div class="row">
       ${navigator.clipboard && navigator.clipboard.readText ? '<button class="btn" data-act="paste">讀取剪貼簿</button>' : ''}
@@ -216,7 +253,7 @@ function viewSettings() {
   return `<h1 class="ttl">設定</h1>
   <section class="card">
     <h2>點餐網址（選填）</h2>
-    <p class="mut">填入電小二的點餐網址（https://shop.cashier.tw/online/menu/order/…），「去點餐」就會直接開啟它，並在網址後帶上餐點資料。網址只存在這台手機。若店家每次給的網址都不同，可以留空，改成自己開點餐頁。</p>
+    <p class="mut">填入電小二的點餐網址（https://shop.cashier.tw/online/menu/order/…），點餐點卡片就會直接開啟它，並在網址後帶上餐點資料。網址只存在這台手機。若店家每次給的網址都不同，可以留空，改成自己開點餐頁。</p>
     <input id="orderUrl" class="inp" type="url" inputmode="url" placeholder="https://shop.cashier.tw/online/menu/order/…" value="${esc(s.orderUrl)}">
     <div class="row"><button class="btn pri grow" data-act="save-url">儲存</button></div>
   </section>
@@ -252,7 +289,7 @@ function render() {
   app.innerHTML = html;
   document.querySelectorAll('.tabs a').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
   if (tab === 'install') {
-    app.querySelectorAll('a.drag').forEach((a) => { a.href = bookmarklets[a.dataset.bm]; });
+    app.querySelectorAll('a.drag').forEach((a) => { a.href = bookmarklets.oneclick; });
   }
   window.scrollTo(0, 0);
 }
@@ -268,12 +305,14 @@ app.addEventListener('click', async (e) => {
   const b = e.target.closest('[data-act],[data-copy]');
   if (!b) return;
   if (b.dataset.copy) {
-    const ok = await copyText(bookmarklets[b.dataset.copy]);
-    toast(ok ? '已複製！接著照下面步驟新增書籤' : '複製失敗，請改用電腦拖曳或重試');
+    const ok = await copyText(bookmarklets.oneclick);
+    b.textContent = ok ? '已複製 ✓ 接著做步驟 2' : '複製失敗，請再按一次';
+    toast(ok ? '已複製書籤程式碼！接著照步驟 2 新增書籤' : '複製失敗，請改用電腦拖曳或重試');
     return;
   }
   const set = b.dataset.id ? findSet(b.dataset.id) : null;
   switch (b.dataset.act) {
+    case 'quick': if (set) quickOrder(set); break;
     case 'order': if (set) goOrder(set); break;
     case 'share': if (set) share([set], set.name); break;
     case 'copy': if (set) toast((await copyText(encodeSets([set]))) ? '資料已複製' : '複製失敗'); break;
@@ -322,9 +361,23 @@ app.addEventListener('change', (e) => {
   }
 });
 
-/** 處理 #import=… / #coc=… 進來的資料 */
+/**
+ * 處理網址帶進來的資料：
+ *  #import=… → 直接自動匯入（書籤存的餐點、朋友的分享連結），不用再按「匯入」
+ *  #coc=…    → 進匯入頁預覽
+ */
 function takeIncoming() {
   const h = location.hash;
+  if (/^#import=/.test(h)) {
+    let sets = null;
+    try { sets = decodeInput(h.slice(1)).sets; } catch { sets = null; }
+    if (sets) {
+      const n = importSets(state, sets);
+      history.replaceState(null, '', location.pathname + location.search + '#/');
+      toast(n ? `已匯入「${sets.map((s) => s.name).join('、')}」` : '這組餐點已經在清單裡');
+      return;
+    }
+  }
   if (/^#(import|coc)=/.test(h)) {
     pendingImport = h.slice(1);
     history.replaceState(null, '', location.pathname + location.search + '#/import');

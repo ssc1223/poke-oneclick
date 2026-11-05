@@ -9,8 +9,7 @@ const dist = join(root, 'dist');
 
 const bm = JSON.parse(readFileSync(join(root, 'src/generated/bookmarklets.json'), 'utf8'));
 mkdirSync(join(dist, 'bookmarklets'), { recursive: true });
-writeFileSync(join(dist, 'bookmarklets/save.txt'), bm.save);
-writeFileSync(join(dist, 'bookmarklets/restore.txt'), bm.restore);
+writeFileSync(join(dist, 'bookmarklets/oneclick.txt'), bm.oneclick);
 
 const files = [];
 const walk = (d) => {
