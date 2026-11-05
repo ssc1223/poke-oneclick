@@ -26,6 +26,7 @@ jobs:
       - id: pages
         uses: actions/configure-pages@v5
       - run: npm ci
+      - run: npx playwright install --with-deps chromium
       - run: npm test
       # 書籤裡「匯入到 App」的網址＝這次部署的 Pages 網址
       - run: npm run build

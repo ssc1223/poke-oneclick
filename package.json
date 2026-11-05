@@ -9,10 +9,13 @@
     "dev": "npm run bookmarklets && vite",
     "build": "npm run bookmarklets && vite build && node scripts/postbuild.mjs",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run && npm run test:e2e",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "esbuild": "^0.25.12",
     "jsdom": "^25.0.1",
     "vite": "^6.4.5",
