@@ -91,18 +91,45 @@ describe('合併書籤：在模擬電小二頁面上', () => {
     expect(shop.cart).toEqual([]);
   });
 
-  it('購物車為空 → 顯示簡單選單並開始記錄；「從 App 選餐點」會開 App', async () => {
+  it('購物車為空 → 顯示簡單選單並開始記錄；「從 App 選餐點」會開 App 並帶上目前訂餐頁', async () => {
     mountMockShop(document, cats, { announcement: false });
+    // 假單號：模擬「目前桌次」與設定裡舊單號不同（不改 location，避免 jsdom 跨網域限制）
+    const current = 'https://shop.cashier.tw/online/menu/order/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const old = 'https://shop.cashier.tw/online/menu/order/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
     const open = opener();
     let menu;
-    const p = runOneClick(base({ open, onMenu: (m) => { menu = m; } }));
+    const p = runOneClick(base({ open, pageHref: current, onMenu: (m) => { menu = m; } }));
     await wait(0);
     expect(menu).toBeTruthy();
     expect(window.__pokeRec).toBeTruthy(); // 背景已開始記錄
     menu.root.querySelector('[data-act=app]').click();
     const res = await p;
     expect(res.action).toBe('menu');
-    expect(open.calls).toEqual([PWA]);
+    expect(open.calls).toHaveLength(1);
+    expect(open.calls[0].startsWith(PWA + '#return=')).toBe(true);
+    expect(decodeURIComponent(open.calls[0].split('#return=')[1])).toBe(current);
+    expect(open.calls[0]).not.toContain(old);
+  });
+
+  it('從 App 選餐點：window.open 被擋時改同分頁導向，仍帶目前訂餐頁', async () => {
+    mountMockShop(document, cats, { announcement: false });
+    const current = 'https://shop.cashier.tw/online/menu/order/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const nav = [];
+    const open = opener(true); // 模擬被擋
+    let menu;
+    const p = runOneClick(base({
+      open,
+      pageHref: current,
+      navigate: (u) => nav.push(u),
+      onMenu: (m) => { menu = m; },
+    }));
+    await wait(0);
+    menu.root.querySelector('[data-act=app]').click();
+    await p;
+    expect(open.calls).toHaveLength(1);
+    expect(nav).toHaveLength(1);
+    expect(nav[0]).toBe(open.calls[0]);
+    expect(decodeURIComponent(nav[0].split('#return=')[1])).toBe(current);
   });
 
   it('記錄後再按一次書籤 → 存成餐點並直接開 App 的 #import= 自動匯入', async () => {
