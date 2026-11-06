@@ -1,6 +1,6 @@
 import './style.css';
 import { encodeSets, decodeInput, summarizeItems, CodecError } from './shared/codec.js';
-import { load, save, importSets, isValidOrderUrl, buildOrderUrl } from './app/store.js';
+import { load, save, importSets, isValidOrderUrl, buildOrderUrl, resolveOrderUrl, applyIncomingReturnUrl, setSessionOrderUrl } from './app/store.js';
 import { installHtml } from './app/install.js';
 import bookmarklets from './generated/bookmarklets.json';
 
@@ -95,7 +95,8 @@ async function share(sets, title) {
  * 必須在點擊事件中同步呼叫 window.open，避免被擋下彈出視窗。
  */
 function quickOrder(set) {
-  const orderUrl = state.settings.orderUrl;
+  // 優先用書籤帶來的「這一桌」網址，不要用設定裡過期的舊單號
+  const orderUrl = resolveOrderUrl(state.settings);
   if (!isValidOrderUrl(orderUrl)) { askOrderUrl(set); return; }
   const token = encodeSets([set]);
   const w = window.open(buildOrderUrl(orderUrl, token), '_blank');
@@ -117,6 +118,7 @@ async function askOrderUrl(set) {
       const v = w.querySelector('input').value.trim();
       if (!isValidOrderUrl(v)) { w.querySelector('.err').hidden = false; return undefined; }
       state.settings.orderUrl = v;
+      setSessionOrderUrl(v);
       persist();
       quickOrder(set);
       return true;
@@ -127,7 +129,7 @@ async function askOrderUrl(set) {
 async function goOrder(set) {
   const token = encodeSets([set]);
   const copied = await copyText(token);
-  const orderUrl = state.settings.orderUrl;
+  const orderUrl = resolveOrderUrl(state.settings);
   const hasUrl = isValidOrderUrl(orderUrl);
   await dialog(`
     <h2>去點餐：${esc(set.name)}</h2>
@@ -253,7 +255,7 @@ function viewSettings() {
   return `<h1 class="ttl">設定</h1>
   <section class="card">
     <h2>點餐網址（選填）</h2>
-    <p class="mut">填入電小二的點餐網址（https://shop.cashier.tw/online/menu/order/…），點餐點卡片就會直接開啟它，並在網址後帶上餐點資料。網址只存在這台手機。若店家每次給的網址都不同，可以留空，改成自己開點餐頁。</p>
+    <p class="mut">填入電小二的點餐網址（https://shop.cashier.tw/online/menu/order/…），點餐點卡片就會直接開啟它，並在網址後帶上餐點資料。網址只存在這台手機。用書籤「從 App 選餐點」進來時，會自動接上目前這一桌，不會用到過期的舊單號。</p>
     <input id="orderUrl" class="inp" type="url" inputmode="url" placeholder="https://shop.cashier.tw/online/menu/order/…" value="${esc(s.orderUrl)}">
     <div class="row"><button class="btn pri grow" data-act="save-url">儲存</button></div>
   </section>
@@ -339,6 +341,7 @@ app.addEventListener('click', async (e) => {
       const v = document.getElementById('orderUrl').value.trim();
       if (v && !isValidOrderUrl(v)) { toast('請填入 https://…cashier.tw/ 開頭的網址'); return; }
       state.settings.orderUrl = v;
+      if (!v) setSessionOrderUrl('');
       persist();
       toast(v ? '已儲存點餐網址' : '已清除點餐網址');
       break;
@@ -363,11 +366,22 @@ app.addEventListener('change', (e) => {
 
 /**
  * 處理網址帶進來的資料：
+ *  #return=… → 書籤「從 App 選餐點」帶來的目前訂餐頁（只存本機／本分頁）
  *  #import=… → 直接自動匯入（書籤存的餐點、朋友的分享連結），不用再按「匯入」
  *  #coc=…    → 進匯入頁預覽
  */
 function takeIncoming() {
   const h = location.hash;
+  if (/^#return=/.test(h)) {
+    const r = applyIncomingReturnUrl(h, state.settings);
+    if (r.applied) {
+      state.settings.orderUrl = r.orderUrl;
+      persist();
+      toast('已接上目前這一桌的點餐頁，按「點餐」會回到這裡');
+    }
+    history.replaceState(null, '', location.pathname + location.search + '#/');
+    return;
+  }
   if (/^#import=/.test(h)) {
     let sets = null;
     try { sets = decodeInput(h.slice(1)).sets; } catch { sets = null; }

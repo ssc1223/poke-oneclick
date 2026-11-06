@@ -40,3 +40,5 @@ export function buildImportUrl(pwaUrl, set) {
   const base = String(pwaUrl || '').split('#')[0];
   return `${base}#import=${encodeSets([set])}`;
 }
+
+export { normalizeOrderPageUrl, buildAppSelectUrl, readReturnUrl } from '../shared/order-url.js';

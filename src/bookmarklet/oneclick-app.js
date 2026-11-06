@@ -5,7 +5,7 @@
 import { runRestore } from './restore-core.js';
 import { startRecording, saveLocalSet, loadLocalSets } from './save-core.js';
 import { chooseSet, confirmIssues, showReport } from './restore-ui.js';
-import { decideAction, readCocToken, stripCoc, defaultSetName, buildImportUrl } from './oneclick-core.js';
+import { decideAction, readCocToken, stripCoc, defaultSetName, buildImportUrl, buildAppSelectUrl, normalizeOrderPageUrl } from './oneclick-core.js';
 import { h, mount, toast, copyText } from './ui.js';
 import { tryDecode, summarizeItems } from '../shared/codec.js';
 
@@ -119,7 +119,20 @@ function showMenu(opts) {
       h('h2', null, '波奇一鍵點餐'),
       h('p', { class: 'mut' }, '已開始記錄：照平常把餐點「加入購物車」，完成後再按一次這個書籤，就會存成餐點並匯入 App。'),
       h('div', { class: 'btns' },
-        h('button', { class: 'pri', type: 'button', 'data-act': 'app', onclick: () => { if (opts.pwaUrl) opts.open(opts.pwaUrl); done({ app: true }); } }, '從 App 選餐點'),
+        h('button', { class: 'pri', type: 'button', 'data-act': 'app', onclick: () => {
+          if (opts.pwaUrl) {
+            // 帶上目前這一桌的訂餐頁，讓 App「點餐」不要用舊單號
+            let pageUrl = '';
+            try { pageUrl = normalizeOrderPageUrl(opts.pageHref || location.href); } catch { pageUrl = ''; }
+            const appUrl = buildAppSelectUrl(opts.pwaUrl, pageUrl);
+            const w = opts.open(appUrl);
+            // 手機 Brave 常擋 window.open：改同分頁導向（書籤本來就會離開點餐頁）
+            if (!w) {
+              try { (opts.navigate || ((u) => { location.assign(u); }))(appUrl); } catch { /* 忽略 */ }
+            }
+          }
+          done({ app: true });
+        } }, '從 App 選餐點'),
         navigator.clipboard && navigator.clipboard.readText && h('button', { type: 'button', onclick: async () => { try { useText(await navigator.clipboard.readText()); } catch { err.textContent = '⚠ 無法讀取剪貼簿，請在下方貼上。'; } } }, '用剪貼簿的餐點'),
       ),
       local.length ? h('div', null, h('p', { class: 'mut' }, '這個瀏覽器存過的：'), local.map((s) => h('button', { class: 'list', type: 'button', onclick: () => done({ data: { sets: [s] } }) }, `${s.name}｜${summarizeItems(s.items)}`))) : null,
