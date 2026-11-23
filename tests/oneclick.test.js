@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { polyfillOffsetParent } from './setup-dom.js';
 import { mountMockShop } from '../mock/mock-shop.js';
-import { decideAction, readCocToken, stripCoc, defaultSetName, buildImportUrl } from '../src/bookmarklet/oneclick-core.js';
+import { decideAction, readCocToken, stripCoc, defaultSetName, buildImportUrl, buildPickUrl } from '../src/bookmarklet/oneclick-core.js';
 import { runOneClick } from '../src/bookmarklet/oneclick-app.js';
 import { loadLocalSets } from '../src/bookmarklet/save-core.js';
 import { cta } from '../src/bookmarklet/dom.js';
@@ -69,6 +69,13 @@ describe('合併書籤：判斷邏輯（純函式）', () => {
   });
 });
 
+describe('從 App 選餐點：帶上這次的點餐網址', () => {
+  it('buildPickUrl 把目前點餐網址（去掉 hash）放進 #order=', () => {
+    const u = buildPickUrl(PWA + '#/x', 'https://shop.cashier.tw/online/menu/order/NEW?a=1#coc=old');
+    expect(u).toBe(PWA + '#order=' + encodeURIComponent('https://shop.cashier.tw/online/menu/order/NEW?a=1'));
+  });
+});
+
 describe('合併書籤：在模擬電小二頁面上', () => {
   it('網址有 #coc= → 自動還原點餐，並把 #coc= 從網址移除', async () => {
     const shop = mountMockShop(document, cats, { announcement: false });
@@ -91,18 +98,20 @@ describe('合併書籤：在模擬電小二頁面上', () => {
     expect(shop.cart).toEqual([]);
   });
 
-  it('購物車為空 → 顯示簡單選單並開始記錄；「從 App 選餐點」會開 App', async () => {
+  it('購物車為空 → 顯示簡單選單並開始記錄；「從 App 選餐點」帶著這次的點餐網址回 App', async () => {
     mountMockShop(document, cats, { announcement: false });
-    const open = opener();
+    history.replaceState(null, '', '/online/menu/order/this-time');
+    const went = [];
     let menu;
-    const p = runOneClick(base({ open, onMenu: (m) => { menu = m; } }));
+    const p = runOneClick(base({ go: (u) => went.push(u), onMenu: (m) => { menu = m; } }));
     await wait(0);
     expect(menu).toBeTruthy();
     expect(window.__pokeRec).toBeTruthy(); // 背景已開始記錄
     menu.root.querySelector('[data-act=app]').click();
     const res = await p;
     expect(res.action).toBe('menu');
-    expect(open.calls).toEqual([PWA]);
+    expect(went).toEqual([PWA + '#order=' + encodeURIComponent(location.origin + '/online/menu/order/this-time')]);
+    expect(window.__pokeRec).toBeNull(); // 離開頁面前停止記錄
   });
 
   it('記錄後再按一次書籤 → 存成餐點並直接開 App 的 #import= 自動匯入', async () => {
