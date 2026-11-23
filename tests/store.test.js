@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { load, importSets, isValidOrderUrl, buildOrderUrl, STORE_KEY } from '../src/app/store.js';
+import { load, importSets, isValidOrderUrl, buildOrderUrl, STORE_KEY, setCurrentOrderUrl, getCurrentOrderUrl, ORDER_TTL } from '../src/app/store.js';
 import { decodeInput } from '../src/shared/codec.js';
 
 beforeEach(() => localStorage.clear());
@@ -19,6 +19,23 @@ describe('PWA 本機資料', () => {
     expect(importSets(st, [{ ...set, name: 'B' }])).toBe(1);
     expect(load().sets.map((s) => s.name)).toEqual(['B', 'A']);
     expect(new Set(load().sets.map((s) => s.id)).size).toBe(2);
+  });
+  it('不再使用舊版長期保存的點餐網址（每次掃 QR code 網址都不同）', () => {
+    localStorage.setItem(STORE_KEY, JSON.stringify({ sets: [], settings: { orderUrl: 'https://shop.cashier.tw/online/menu/order/OLD', theme: 'dark' } }));
+    const st = load();
+    expect(st.settings.orderUrl).toBeUndefined();
+    expect(st.settings.theme).toBe('dark');
+    expect(getCurrentOrderUrl()).toBe('');
+  });
+  it('這次的點餐網址：去掉 hash、只接受電小二網址、3 小時後過期', () => {
+    const t = 1_000_000;
+    expect(setCurrentOrderUrl('https://evil.example.com/x', t)).toBe(false);
+    expect(setCurrentOrderUrl('https://shop.cashier.tw/online/menu/order/A#coc=x', t)).toBe(true);
+    expect(getCurrentOrderUrl(t + 1000)).toBe('https://shop.cashier.tw/online/menu/order/A');
+    setCurrentOrderUrl('https://shop.cashier.tw/online/menu/order/B', t + 2000); // 新掃的覆蓋舊的
+    expect(getCurrentOrderUrl(t + 3000)).toBe('https://shop.cashier.tw/online/menu/order/B');
+    expect(getCurrentOrderUrl(t + 2000 + ORDER_TTL)).toBe('');
+    expect(getCurrentOrderUrl(t + 3000)).toBe(''); // 過期就清掉
   });
   it('點餐網址驗證與 #coc= 組合', () => {
     expect(isValidOrderUrl('https://shop.cashier.tw/online/menu/order/abc')).toBe(true);

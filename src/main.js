@@ -1,6 +1,6 @@
 import './style.css';
 import { encodeSets, decodeInput, summarizeItems, CodecError } from './shared/codec.js';
-import { load, save, importSets, isValidOrderUrl, buildOrderUrl } from './app/store.js';
+import { load, save, importSets, buildOrderUrl, setCurrentOrderUrl, getCurrentOrderUrl, clearCurrentOrderUrl } from './app/store.js';
 import { installHtml } from './app/install.js';
 import bookmarklets from './generated/bookmarklets.json';
 
@@ -91,54 +91,28 @@ async function share(sets, title) {
 }
 
 /**
- * 點餐：點一下就開點餐頁（網址帶 #coc=），在點餐頁按書籤就會自動還原。
- * 必須在點擊事件中同步呼叫 window.open，避免被擋下彈出視窗。
+ * 點餐：點一下餐點卡片就回到「這次」的點餐頁（網址帶 #coc=），按書籤就會自動還原。
+ * 這次的點餐網址由書籤帶過來（#order=）；電小二每次掃 QR code 網址都不同，所以不使用舊網址。
  */
 function quickOrder(set) {
-  const orderUrl = state.settings.orderUrl;
-  if (!isValidOrderUrl(orderUrl)) { askOrderUrl(set); return; }
-  const token = encodeSets([set]);
-  const w = window.open(buildOrderUrl(orderUrl, token), '_blank');
-  if (!w) { goOrder(set); return; } // 被擋下彈出視窗：改顯示「開啟點餐頁」按鈕
-  try { w.opener = null; } catch { /* 忽略 */ }
-  copyText(token); // 備用：點餐頁網址的資料遺失時，書籤可改用剪貼簿
-  toast(`已開啟點餐頁：在網址列打書籤名稱（例如 poke）再點書籤，就會自動點「${set.name}」`);
+  const orderUrl = getCurrentOrderUrl();
+  if (!orderUrl) { goOrder(set); return; }
+  location.href = buildOrderUrl(orderUrl, encodeSets([set]));
 }
 
-/** 第一次使用：請使用者貼上點餐網址，存起來後直接開啟 */
-async function askOrderUrl(set) {
-  await dialog(`<h2>貼上點餐網址</h2>
-    <p class="mut">第一次使用請貼上電小二的點餐網址（https://shop.cashier.tw/online/menu/order/…），只會存在這台手機，之後點餐點卡片就會直接開啟。</p>
-    <input class="inp" type="url" inputmode="url" placeholder="https://shop.cashier.tw/online/menu/order/…">
-    <p class="err" hidden>請貼上 https://…cashier.tw/ 開頭的網址</p>`,
-  [{ label: '取消', value: null }, {
-    label: '儲存並開啟點餐頁', cls: 'pri', keep: true,
-    value: (w) => {
-      const v = w.querySelector('input').value.trim();
-      if (!isValidOrderUrl(v)) { w.querySelector('.err').hidden = false; return undefined; }
-      state.settings.orderUrl = v;
-      persist();
-      quickOrder(set);
-      return true;
-    },
-  }]);
-}
-
+/** 沒有這次的點餐網址：說明怎麼開，並把資料複製到剪貼簿當備用 */
 async function goOrder(set) {
   const token = encodeSets([set]);
   const copied = await copyText(token);
-  const orderUrl = state.settings.orderUrl;
-  const hasUrl = isValidOrderUrl(orderUrl);
   await dialog(`
-    <h2>去點餐：${esc(set.name)}</h2>
-    ${copied ? '<p class="ok">✓ 已把餐點資料複製到剪貼簿</p>' : `<p class="err">無法自動複製，請手動複製下面的資料：</p><textarea class="inp" readonly rows="3">${esc(token)}</textarea>`}
+    <h2>先開啟這次的點餐頁</h2>
+    <p>電小二每次掃 QR code 的點餐網址都不一樣，所以要從這次的點餐頁開始：</p>
     <ol class="steps-sm">
-      <li>${hasUrl ? '按下方「開啟點餐頁」' : '用 <b>Brave／Chrome／Safari</b> 打開這次的電小二點餐網址（掃 QR 時選 Brave；不要用 LINE 內建瀏覽器）'}</li>
-      <li>點網址列，輸入書籤名稱（例如 poke），點那個書籤（會自動讀取剪貼簿）</li>
-      <li>等它自動加入購物車，<b>自己檢查後再結帳</b></li>
+      <li>用 <b>Brave／Chrome／Safari</b> 掃桌上的 QR code 開啟點餐頁（不要用 LINE 內建瀏覽器）</li>
+      <li>在網址列輸入書籤名稱（例如 poke）點書籤 →「從 App 選餐點」</li>
+      <li>回到這裡點一下「${esc(set.name)}」，再按一次書籤就會自動加入購物車</li>
     </ol>
-    ${hasUrl ? `<a class="btn pri block" href="${esc(buildOrderUrl(orderUrl, token))}" target="_blank" rel="noopener">開啟點餐頁</a>` : '<p class="mut">小技巧：到「設定」填入點餐網址，下次就能一鍵開啟。</p>'}
-    <p class="mut">若點餐頁開在 App 內的小視窗（無法用書籤），請點選單裡的「在瀏覽器中開啟」，或改用 Brave／Safari 開啟。</p>`);
+    ${copied ? '<p class="ok">✓ 也已把這組餐點複製到剪貼簿：在點餐頁按書籤 →「用剪貼簿的餐點」也可以。</p>' : ''}`);
 }
 
 async function renameSet(set) {
@@ -173,8 +147,11 @@ function viewHome() {
       <div class="row center"><a class="btn pri" href="#/install">看安裝教學</a><a class="btn" href="#/import">貼上資料匯入</a></div>
     </section>`;
   }
+  const cur = getCurrentOrderUrl();
   return `<h1 class="ttl">常點組合</h1>
-  <p class="mut">點一下餐點就會開啟點餐頁，再按書籤「一鍵點餐」自動加入購物車；菜單有變動會先提示。</p>${state.sets.map((s) => `
+  ${cur
+    ? '<p class="note">✓ 已連上這次的點餐頁。點一下餐點就會回到點餐頁，再按書籤「一鍵點餐」自動加入購物車；菜單有變動會先提示。<button class="linkbtn" data-act="forget-order">不是這次的？</button></p>'
+    : '<p class="mut">先掃 QR code 開點餐頁，按書籤「一鍵點餐」→「從 App 選餐點」，再點一下要點的餐點。</p>'}${state.sets.map((s) => `
     <section class="card set">
       <button type="button" class="set-main" data-act="quick" data-id="${esc(s.id)}" aria-label="點餐：${esc(s.name)}">
         <h2>${esc(s.name)} <span class="go">點餐 ›</span></h2>
@@ -213,7 +190,6 @@ function viewSet(id) {
   }).join('')}
   <div class="actions">
     <button class="btn pri block" data-act="quick" data-id="${esc(s.id)}">去點餐</button>
-    <button class="btn block" data-act="order" data-id="${esc(s.id)}">用剪貼簿點餐（沒有點餐網址時）</button>
     <div class="row">
       <button class="btn grow" data-act="rename" data-id="${esc(s.id)}">改名</button>
       <button class="btn grow" data-act="share" data-id="${esc(s.id)}">分享連結</button>
@@ -251,12 +227,6 @@ function viewImport() {
 function viewSettings() {
   const s = state.settings;
   return `<h1 class="ttl">設定</h1>
-  <section class="card">
-    <h2>點餐網址（選填）</h2>
-    <p class="mut">填入電小二的點餐網址（https://shop.cashier.tw/online/menu/order/…），點餐點卡片就會直接開啟它，並在網址後帶上餐點資料。網址只存在這台手機。若店家每次給的網址都不同，可以留空，改成自己開點餐頁。</p>
-    <input id="orderUrl" class="inp" type="url" inputmode="url" placeholder="https://shop.cashier.tw/online/menu/order/…" value="${esc(s.orderUrl)}">
-    <div class="row"><button class="btn pri grow" data-act="save-url">儲存</button></div>
-  </section>
   <section class="card">
     <h2>外觀</h2>
     <div class="seg">${[['auto', '跟隨系統'], ['light', '淺色'], ['dark', '深色']].map(([v, l]) => `<label><input type="radio" name="theme" value="${v}"${s.theme === v ? ' checked' : ''}> ${l}</label>`).join('')}</div>
@@ -335,14 +305,7 @@ app.addEventListener('click', async (e) => {
       }
       break;
     }
-    case 'save-url': {
-      const v = document.getElementById('orderUrl').value.trim();
-      if (v && !isValidOrderUrl(v)) { toast('請填入 https://…cashier.tw/ 開頭的網址'); return; }
-      state.settings.orderUrl = v;
-      persist();
-      toast(v ? '已儲存點餐網址' : '已清除點餐網址');
-      break;
-    }
+    case 'forget-order': clearCurrentOrderUrl(); render(); toast('已清除。請重新從點餐頁按書籤'); break;
     case 'share-all': share(state.sets, `全部 ${state.sets.length} 組`); break;
     case 'clear': {
       const ok = await dialog('<h2>清除全部常點組合？</h2><p>刪除後無法復原，建議先「分享／備份全部」。</p>', [{ label: '取消', value: false }, { label: '全部清除', cls: 'danger', value: true }]);
@@ -365,9 +328,19 @@ app.addEventListener('change', (e) => {
  * 處理網址帶進來的資料：
  *  #import=… → 直接自動匯入（書籤存的餐點、朋友的分享連結），不用再按「匯入」
  *  #coc=…    → 進匯入頁預覽
+ *  #order=…  → 記住這次的點餐網址
  */
 function takeIncoming() {
   const h = location.hash;
+  // #order=<這次的點餐網址>：書籤「從 App 選餐點」帶過來的
+  const om = h.match(/^#order=(.+)$/);
+  if (om) {
+    let u = '';
+    try { u = decodeURIComponent(om[1]); } catch { u = ''; }
+    history.replaceState(null, '', location.pathname + location.search + '#/');
+    toast(setCurrentOrderUrl(u) ? '已連上這次的點餐頁，點一下要點的餐點' : '點餐網址不正確，請在電小二點餐頁按書籤');
+    return;
+  }
   if (/^#import=/.test(h)) {
     let sets = null;
     try { sets = decodeInput(h.slice(1)).sets; } catch { sets = null; }

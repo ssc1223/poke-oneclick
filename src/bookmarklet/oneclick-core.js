@@ -35,6 +35,16 @@ export function defaultSetName(items, date = new Date()) {
   return `${first}${n > 1 ? ` 等 ${n} 份` : ''} ${date.getMonth() + 1}/${date.getDate()}`;
 }
 
+/**
+ * 「從 App 選餐點」要開的網址：把這次的點餐網址（去掉 hash）帶給 App，
+ * App 點餐時才會回到這次的點餐頁，而不是舊的訂單網址。
+ */
+export function buildPickUrl(pwaUrl, orderUrl) {
+  const base = String(pwaUrl || '').split('#')[0];
+  const order = String(orderUrl || '').split('#')[0];
+  return `${base}#order=${encodeURIComponent(order)}`;
+}
+
 /** 產生跳回 App 自動匯入的網址：<PWA 網址>#import=<資料> */
 export function buildImportUrl(pwaUrl, set) {
   const base = String(pwaUrl || '').split('#')[0];

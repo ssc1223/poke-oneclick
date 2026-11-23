@@ -5,7 +5,7 @@
 import { runRestore } from './restore-core.js';
 import { startRecording, saveLocalSet, loadLocalSets } from './save-core.js';
 import { chooseSet, confirmIssues, showReport } from './restore-ui.js';
-import { decideAction, readCocToken, stripCoc, defaultSetName, buildImportUrl } from './oneclick-core.js';
+import { decideAction, readCocToken, stripCoc, defaultSetName, buildImportUrl, buildPickUrl } from './oneclick-core.js';
 import { h, mount, toast, copyText } from './ui.js';
 import { tryDecode, summarizeItems } from '../shared/codec.js';
 
@@ -119,7 +119,7 @@ function showMenu(opts) {
       h('h2', null, '波奇一鍵點餐'),
       h('p', { class: 'mut' }, '已開始記錄：照平常把餐點「加入購物車」，完成後再按一次這個書籤，就會存成餐點並匯入 App。'),
       h('div', { class: 'btns' },
-        h('button', { class: 'pri', type: 'button', 'data-act': 'app', onclick: () => { if (opts.pwaUrl) opts.open(opts.pwaUrl); done({ app: true }); } }, '從 App 選餐點'),
+        h('button', { class: 'pri', type: 'button', 'data-act': 'app', onclick: () => { if (opts.pwaUrl) { stopRecording(); opts.go(buildPickUrl(opts.pwaUrl, location.href)); } done({ app: true }); } }, '從 App 選餐點'),
         navigator.clipboard && navigator.clipboard.readText && h('button', { type: 'button', onclick: async () => { try { useText(await navigator.clipboard.readText()); } catch { err.textContent = '⚠ 無法讀取剪貼簿，請在下方貼上。'; } } }, '用剪貼簿的餐點'),
       ),
       local.length ? h('div', null, h('p', { class: 'mut' }, '這個瀏覽器存過的：'), local.map((s) => h('button', { class: 'list', type: 'button', onclick: () => done({ data: { sets: [s] } }) }, `${s.name}｜${summarizeItems(s.items)}`))) : null,
@@ -133,10 +133,10 @@ function showMenu(opts) {
 
 /**
  * 書籤主程式。opts 主要給測試注入：
- *  pwaUrl, open(url) → window|null, confirm, choose, report, scale, recOpts, onMenu(panel), skipHostCheck
+ *  pwaUrl, open(url) → window|null, go(url)（同分頁前往）, confirm, choose, report, scale, recOpts, onMenu(panel), skipHostCheck
  */
 export async function runOneClick(opts = {}) {
-  const o = { pwaUrl: DEFAULT_PWA_URL, open: (u) => window.open(u, '_blank'), ...opts };
+  const o = { pwaUrl: DEFAULT_PWA_URL, open: (u) => window.open(u, '_blank'), go: (u) => { location.href = u; }, ...opts };
   if (window.__pokeRunning) { toast('一鍵點餐執行中，請稍候…'); return { action: 'busy' }; }
   if (!o.skipHostCheck && !/cashier\.tw$/.test(location.hostname) && !window.confirm('這個頁面看起來不是電小二點餐頁，仍要執行嗎？')) return { action: 'abort' };
   window.__pokeRunning = true;
